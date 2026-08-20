@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan - TEMPLATE SUBJECT</title>
+
+<!-- Theme init: blocking, runs before paint to prevent flash-of-wrong-theme (FOUC).
+     Default landing state is dark; only a persisted "light" choice overrides. file:// safe (try/catch). -->
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem("theme");
+      if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    } catch (e) { /* localStorage blocked on file:// in some browsers - keep default */ }
+  })();
+</script>
+
+<style>
+  /* ---- Design tokens: dark is the default landing theme ---- */
+  :root, [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0d1117; --panel: #161b22; --panel2: #1d212b; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --amber: #d29922; --red: #f85149;
+    --code-bg: #1f2630; --chip: #222838;
+    /* status-hue RGB triplets - reused for tag/callout fills + borders */
+    --green-rgb: 63,185,80; --amber-rgb: 210,153,34; --red-rgb: 248,81,73; --accent-rgb: 88,166,255;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --wrap-max: 960px;   /* bump to 1080px for diff/column/grid-heavy docs - the TOC offset tracks it */
+  }
+  [data-theme="light"] {
+    color-scheme: light;
+    --bg: #ffffff; --panel: #f6f8fa; --panel2: #eef1f5; --border: #d0d7de;
+    --text: #1f2328; --muted: #656d76; --accent: #0969da;
+    --green: #1a7f37; --amber: #9a6700; --red: #cf222e;
+    --code-bg: #f6f8fa; --chip: #eaeef2;
+    --green-rgb: 26,127,55; --amber-rgb: 154,103,0; --red-rgb: 207,34,46; --accent-rgb: 9,105,218;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: var(--sans); line-height: 1.6; }
+  .wrap { max-width: var(--wrap-max); margin: 0 auto; padding: 40px 24px 80px; }
+  /* widen via the --wrap-max token above (e.g. 1080px) - the fixed TOC offset follows automatically */
+
+  /* ---- Headings ---- */
+  h1 { font-size: 1.9rem; border-bottom: 2px solid var(--border); padding-bottom: .4em; margin: 0 0 .2em; }
+  h2 { font-size: 1.35rem; margin-top: 2.2em; border-bottom: 1px solid var(--border); padding-bottom: .3em;
+       scroll-margin-top: 1.5em; display: flex; flex-wrap: wrap; align-items: center; gap: .5em; }
+  h3 { font-size: 1.08rem; margin-top: 1.6em; color: var(--accent); scroll-margin-top: 1.5em; }
+  h4 { font-size: .98rem; margin: 1.2em 0 .4em; color: var(--accent); }
+  /* numbered section badge - opt-in, add <span class="n">1</span> inside an h2 */
+  h2 .n { font-family: var(--mono); font-size: .8rem; color: var(--bg); background: var(--accent);
+    width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center;
+    justify-content: center; font-weight: 700; flex: none; }
+
+  a { color: var(--accent); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5em 0; }
+  ul, ol { padding-left: 1.4em; }
+  li { margin: .3em 0; }
+  p { margin: .8em 0; }
+
+  /* ---- Code ---- */
+  code { font-family: var(--mono); background: var(--chip); padding: .12em .4em;
+    border-radius: 4px; font-size: .86em; }
+  pre { position: relative; background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; overflow-x: auto; }
+  pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.5; }
+  /* copy button injected by JS */
+  .copy-btn { position: absolute; top: 8px; right: 8px; font: 600 11px/1 var(--mono);
+    color: var(--muted); background: var(--panel); border: 1px solid var(--border);
+    border-radius: 6px; padding: 5px 8px; cursor: pointer; opacity: 0; transition: opacity .15s; }
+  pre:hover .copy-btn, .copy-btn:focus-visible { opacity: 1; }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+  @media (hover: none) { .copy-btn { opacity: .65; } }  /* touch has no hover - keep the button visible */
+
+  /* ---- Tables ---- */
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .9rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+
+  /* ---- Inline helpers ---- */
+  .meta { color: var(--muted); font-size: .85rem; }
+  .file { font-family: var(--mono); font-size: .82rem; color: var(--green); overflow-wrap: anywhere; }
+  .mono { font-family: var(--mono); color: var(--accent); }
+  .ok { color: var(--green); } .no { color: var(--red); }
+  .legend { color: var(--muted); }
+  .legend span { margin-right: 1.5em; font-size: .85rem; white-space: nowrap; }
+  .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px;
+    margin-right: 5px; vertical-align: middle; }
+
+  /* ---- Tags / status pills ---- */
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; padding: .15em .6em;
+    border-radius: 999px; vertical-align: middle; margin-left: .4em; }
+  .tag.now, .tag.done, .tag.ok   { background: rgba(var(--green-rgb),.15); color: var(--green); border: 1px solid rgba(var(--green-rgb),.4); }
+  .tag.gated, .tag.todo, .tag.warn { background: rgba(var(--amber-rgb),.15); color: var(--amber); border: 1px solid rgba(var(--amber-rgb),.4); }
+  .tag.bug, .tag.risk            { background: rgba(var(--red-rgb),.15);   color: var(--red);   border: 1px solid rgba(var(--red-rgb),.4); }
+  .tag.scope, .tag.info          { background: rgba(var(--accent-rgb),.15); color: var(--accent); border: 1px solid rgba(var(--accent-rgb),.4); }
+
+  /* ---- Callouts ---- */
+  .callout { border-left: 4px solid var(--accent); background: var(--panel);
+    padding: 12px 18px; border-radius: 0 8px 8px 0; margin: 1.2em 0; }
+  .callout.warn { border-left-color: var(--amber); }
+  .callout.risk { border-left-color: var(--red); }
+  .callout.ok   { border-left-color: var(--green); }
+  .callout .h { font-weight: 700; font-size: .8rem; font-family: var(--mono);
+    letter-spacing: .04em; text-transform: uppercase; margin-bottom: .3em; color: var(--accent); }
+  .callout.warn .h { color: var(--amber); } .callout.risk .h { color: var(--red); } .callout.ok .h { color: var(--green); }
+
+  /* ---- Collapsible <details> (zero JS) ---- */
+  details { border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+    padding: 0 16px; margin: 1.2em 0; }
+  details[open] { padding-bottom: 12px; }
+  summary { cursor: pointer; padding: 12px 0; font-weight: 600; list-style: none;
+    display: flex; align-items: center; gap: .5em; }
+  summary::-webkit-details-marker { display: none; }   /* WebKit/Blink */
+  summary::marker { content: ""; }                      /* Firefox/standard */
+  summary::before { content: "▶"; color: var(--accent); font-size: .7em; transition: transform .2s; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  /* progressive smooth-open - Baseline late-2024; degrades to instant elsewhere */
+  @supports (interpolate-size: allow-keywords) {
+    :root { interpolate-size: allow-keywords; }
+    details::details-content { height: 0; overflow: clip;
+      transition: height .25s ease, content-visibility .25s allow-discrete; }
+    details[open]::details-content { height: auto; }
+  }
+
+  /* ---- Flow diagram ---- */
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin: 1.2em 0; }
+  .node { flex: 1; min-width: 150px; background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; text-align: center; }
+  .node .t { font-family: var(--mono); font-size: .78rem; color: var(--accent); font-weight: 700; }
+  .node .d { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+  .node.out { border-color: rgba(var(--green-rgb),.45); background: rgba(var(--green-rgb),.07); }
+  .arrow { display: flex; align-items: center; justify-content: center; color: var(--muted);
+    font-size: 1.4rem; padding: 0 6px; }
+
+  /* ---- Numbered steps (CSS counters) ---- */
+  .steps { counter-reset: s; margin: 1em 0; padding: 0; list-style: none; }
+  .steps li { position: relative; padding: 12px 14px 12px 50px; border: 1px solid var(--border);
+    border-radius: 12px; margin: 10px 0; background: var(--panel2); }
+  .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 12px; top: 12px;
+    width: 26px; height: 26px; border-radius: 8px; background: var(--accent); color: var(--bg);
+    font-family: var(--mono); font-weight: 700; font-size: .8rem;
+    display: flex; align-items: center; justify-content: center; }
+
+  /* ---- Before/after cards ---- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 1em 0; }
+  .card { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .card h4 { margin: 0 0 8px; font-size: .8rem; font-family: var(--mono);
+    letter-spacing: .04em; text-transform: uppercase; }
+  .card.before h4 { color: var(--amber); } .card.after h4 { color: var(--green); }
+
+  /* ---- File tree ---- */
+  .tree { font-family: var(--mono); font-size: .82rem; line-height: 1.7; color: var(--text);
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; }
+  .tree .new { color: var(--green); } .tree .edit { color: var(--amber); } .tree .dim { color: var(--muted); }
+
+  /* ---- Two-column diff ---- */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1em 0; }
+  .col { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .col .hd { padding: 6px 12px; font-weight: 600; font-size: .78rem; border-bottom: 1px solid var(--border); background: var(--panel); }
+  .col.a .hd { background: rgba(var(--amber-rgb),.12); color: var(--amber); }
+  .col.b .hd { background: rgba(var(--accent-rgb),.12); color: var(--accent); }
+  .col pre { border: 0; border-radius: 0; margin: 0; font-size: .72rem; }
+  .diff { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 1em 0; }
+  .diff-hd { background: var(--panel); padding: 6px 14px; font-weight: 600; font-size: .8rem; border-bottom: 1px solid var(--border); }
+  .diff pre { border: 0; border-radius: 0; margin: 0; }
+  .del { background: rgba(var(--red-rgb),.12);   color: var(--red);   display: block; }
+  .add { background: rgba(var(--green-rgb),.12); color: var(--green); display: block; }
+  .ctx { color: var(--muted); display: block; }
+
+  /* ---- Theme toggle button ---- */
+  .theme-toggle { position: fixed; top: 16px; right: 16px; z-index: 10;
+    font: 600 12px/1 var(--mono); color: var(--muted); background: var(--panel);
+    border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+  .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+
+  /* ---- Scroll-spy TOC: fixed in the left gutter on wide screens, inline box on narrow ---- */
+  #toc { position: fixed; top: 24px; left: calc(50% - var(--wrap-max)/2 - 204px); width: 180px;
+    max-height: calc(100vh - 48px); overflow-y: auto; font-size: .82rem; }
+  #toc .toc-label { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  #toc a { display: block; color: var(--muted); text-decoration: none; padding: 3px 10px;
+    border-left: 2px solid var(--border); }
+  #toc a:hover { color: var(--text); }
+  #toc a.lvl-h3 { padding-left: 22px; font-size: .92em; }
+  #toc a.active { color: var(--accent); border-left-color: var(--accent); }
+  /* media queries can't read --wrap-max; 1500px keeps the gutter TOC on-screen for wraps up to 1080px */
+  @media (max-width: 1500px) {
+    #toc { position: static; width: auto; max-height: none; margin: 0 0 1.5em;
+      border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; background: var(--panel); }
+    #toc a { border-left: none; padding: 2px 0; }
+    #toc a.active { border-left: none; }
+  }
+
+  /* ---- Mobile reflow ---- */
+  @media (max-width: 720px) {
+    .grid2, .cols { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; }
+    .arrow { transform: rotate(90deg); }
+    table { display: block; overflow-x: auto; }  /* wide matrices scroll in place instead of stretching the page */
+    .wrap { padding: 24px 16px 60px; }
+  }
+
+  /* ---- Respect reduced motion ---- */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  /* ---- Print: force light, expand everything, drop chrome ---- */
+  @media print {
+    :root, [data-theme="dark"] { color-scheme: light;
+      --bg: #fff; --panel: #fff; --panel2: #fff; --border: #999; --text: #000;
+      --muted: #444; --code-bg: #f4f4f4; --chip: #eee;
+      --accent: #0969da; --green: #1a7f37; --amber: #9a6700; --red: #cf222e;
+      --accent-rgb: 9,105,218; --green-rgb: 26,127,55; --amber-rgb: 154,103,0; --red-rgb: 207,34,46; }
+    .theme-toggle, #toc, .copy-btn { display: none !important; }
+    details { border: 1px solid #999; }
+    details > summary::before { display: none; }
+    details::details-content { height: auto !important; }  /* expand collapsed content */
+    pre, .tree, table, .callout { break-inside: avoid; }
+    a { color: #000; text-decoration: underline; }
+  }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme">◑ theme</button>
+
+<div class="wrap">
+
+  <h1>TEMPLATE SUBJECT</h1>
+  <p class="meta">Project · Area · Driven by <a href="#">ticket / PR / driver</a></p>
+  <p class="legend">
+    <span><span class="tag now">NOW</span> ships independently</span>
+    <span><span class="tag gated">GATED</span> blocked on a dependency</span>
+    <span><span class="tag risk">RISK</span> needs a decision</span>
+  </p>
+
+  <!-- TOC sits after the title block so the doc leads with <h1>; on wide screens it lifts into the fixed gutter. -->
+  <nav id="toc" aria-label="On this page"><div class="toc-label">On this page</div></nav>
+
+  <h2>Context</h2>
+  <p>Why this change exists - the one-paragraph framing. Lead with the point; readers scan the first
+     line of every section. Keep prose for reasoning; move any matrix into a table.</p>
+  <div class="callout">
+    <div class="h">One-line summary</div>
+    The single sentence a reviewer needs to grasp the whole change.
+  </div>
+
+  <h2>Scope</h2>
+  <div class="callout">
+    <ul style="margin:.4em 0 0">
+      <li><span class="ok">✅</span> In scope - the thing being done.</li>
+      <li><span class="ok">✅</span> Also in scope.</li>
+      <li><span class="no">❌</span> Explicitly out of scope - name it so it isn't assumed.</li>
+    </ul>
+  </div>
+
+  <h2>Implementation</h2>
+  <p class="file">path/to/the/file/being/changed.ext</p>
+  <pre><code>// load-bearing code goes in a pre; a span that just points at a known
+// definition can be an inline .file reference instead of a full dump.
+function example() { return true; }</code></pre>
+
+  <details>
+    <summary>Exhaustive call-site table (collapsed - secondary detail)</summary>
+    <table>
+      <tr><th>Call site</th><th>Change</th><th>Notes</th></tr>
+      <tr><td class="file">a.ext:12</td><td>…</td><td>…</td></tr>
+      <tr><td class="file">b.ext:48</td><td>…</td><td>…</td></tr>
+    </table>
+  </details>
+
+  <h2>Tests</h2>
+  <table>
+    <tr><th>Layer</th><th>File</th><th>Coverage</th></tr>
+    <tr><td>Unit</td><td class="file">tests/unit/...</td><td>What it asserts.</td></tr>
+    <tr><td>Integration</td><td class="file">tests/integration/...</td><td>End-to-end path.</td></tr>
+  </table>
+
+  <h2>Verification</h2>
+  <ol class="steps">
+    <li>Build / run the thing.</li>
+    <li>Exercise the changed path and confirm the observable result.</li>
+    <li>Check the edge case that motivated the change.</li>
+  </ol>
+
+  <h2>Risks</h2>
+  <div class="callout risk"><div class="h">Highest risk</div> What could break and the mitigation.</div>
+  <div class="callout warn"><div class="h">Watch</div> A softer concern to keep an eye on.</div>
+
+  <h2>Critical files</h2>
+  <ul>
+    <li class="file">path/to/critical/file/one.ext</li>
+    <li class="file">path/to/critical/file/two.ext</li>
+  </ul>
+
+  <footer class="meta" style="margin-top:3em;padding-top:1em;border-top:1px solid var(--border)">
+    Plan artifact · companion markdown at <code>~/.claude/plans/&lt;slug&gt;.md</code> (if present) ·
+    facts verified by &lt;how&gt;.
+  </footer>
+
+</div>
+
+<!-- Progressive enhancement: TOC + scroll-spy, copy buttons, theme toggle.
+     Single classic inline script (never an ES module - those fail on file://).
+     Everything degrades silently: with JS off, the doc reads fine. -->
+<script>
+(function () {
+  "use strict";
+
+  function slug(s) {
+    return s.toLowerCase().trim().replace(/[^\w]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  /* ---- Build TOC from headings + scroll-spy ---- */
+  try {
+    var toc = document.getElementById("toc");
+    var heads = [].slice.call(document.querySelectorAll(".wrap h2, .wrap h3"));
+    if (toc && heads.length) {
+      var used = {};
+      heads.forEach(function (h) {
+        if (!h.id) {
+          var base = slug(h.textContent) || "section";
+          var id = base, i = 2;
+          while (used[id] || document.getElementById(id)) { id = base + "-" + i++; }
+          used[id] = 1; h.id = id;
+        }
+        var a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.textContent;
+        a.className = "lvl-" + h.tagName.toLowerCase();
+        a.dataset.id = h.id;
+        toc.appendChild(a);
+      });
+
+      var links = {};
+      [].forEach.call(toc.querySelectorAll("a"), function (a) { links[a.dataset.id] = a; });
+      var visible = new Set();
+      function setActive(h) {
+        [].forEach.call(toc.querySelectorAll("a.active"), function (a) { a.classList.remove("active"); });
+        if (h && links[h.id]) links[h.id].classList.add("active");
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) visible.add(e.target); else visible.delete(e.target);
+        });
+        var current = null;
+        for (var i = 0; i < heads.length; i++) { if (visible.has(heads[i])) { current = heads[i]; break; } }
+        if (!current) {  /* scroll-up fallback: last heading above the fold */
+          for (var j = 0; j < heads.length; j++) {
+            if (heads[j].getBoundingClientRect().top < 100) current = heads[j];
+          }
+        }
+        setActive(current);
+      }, { rootMargin: "-80px 0px -70% 0px", threshold: 0 });
+      heads.forEach(function (h) { io.observe(h); });
+    }
+  } catch (e) { /* no TOC - body still reads fine */ }
+
+  /* ---- Copy-to-clipboard on every <pre> (file:// safe: modern API + execCommand fallback) ---- */
+  function copyText(text) {
+    return new Promise(function (resolve) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(function () { resolve(true); }, function () { resolve(legacy(text)); });
+          return;
+        }
+      } catch (e) { /* fall through */ }
+      resolve(legacy(text));
+    });
+    function legacy(t) {
+      var ta = document.createElement("textarea");
+      ta.value = t; ta.style.cssText = "position:fixed;top:-9999px;opacity:0";
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      ta.remove(); return ok;
+    }
+  }
+  try {
+    [].forEach.call(document.querySelectorAll("pre"), function (pre) {
+      if (pre.closest("#toc")) return;
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "copy-btn"; btn.textContent = "Copy";
+      btn.addEventListener("click", function () {
+        var code = pre.querySelector("code");
+        copyText(code ? code.innerText : pre.innerText).then(function (ok) {
+          btn.textContent = ok ? "Copied!" : "Failed";
+          setTimeout(function () { btn.textContent = "Copy"; }, 1500);
+        });
+      });
+      pre.appendChild(btn);
+    });
+  } catch (e) { /* code blocks still selectable */ }
+
+  /* ---- Theme toggle (persists if storage allows; works for the session regardless) ---- */
+  try {
+    var tg = document.getElementById("theme-toggle");
+    if (tg) tg.addEventListener("click", function () {
+      var next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem("theme", next); } catch (e) {}
+    });
+  } catch (e) {}
+
+  /* ---- Expand every <details> for print/PDF, then restore (closed ones don't render on print) ---- */
+  try {
+    addEventListener("beforeprint", function () {
+      [].forEach.call(document.querySelectorAll("details"), function (d) {
+        d.dataset.printOpen = d.open ? "1" : "0"; d.open = true;
+      });
+    });
+    addEventListener("afterprint", function () {
+      [].forEach.call(document.querySelectorAll("details"), function (d) { d.open = d.dataset.printOpen === "1"; });
+    });
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

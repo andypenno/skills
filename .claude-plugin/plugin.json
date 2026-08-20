@@ -1,0 +1,17 @@
+{
+  "name": "skills",
+  "description": "Personal agent skills: code review lenses, a QA loop, agent-facing authoring, session reflection, and knowledge capture.",
+  "author": {
+    "name": "Andrew Pennington",
+    "url": "https://github.com/andypenno"
+  },
+  "repository": "https://github.com/andypenno/skills",
+  "license": "MIT",
+  "keywords": [
+    "review",
+    "qa",
+    "skills",
+    "obsidian",
+    "changelog"
+  ]
+}

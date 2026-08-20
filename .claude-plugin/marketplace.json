@@ -1,0 +1,15 @@
+{
+  "name": "andypenno",
+  "description": "Andrew Pennington's personal agent skills.",
+  "owner": {
+    "name": "Andrew Pennington",
+    "url": "https://github.com/andypenno"
+  },
+  "plugins": [
+    {
+      "name": "skills",
+      "source": ".",
+      "category": "productivity"
+    }
+  ]
+}

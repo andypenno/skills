@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTML skill - component gallery</title>
+<script>
+  (function () { try { var t = localStorage.getItem("theme");
+    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {} })();
+</script>
+<style>
+  :root, [data-theme="dark"] {
+    color-scheme: dark;
+    --bg:#0d1117; --panel:#161b22; --panel2:#1d212b; --border:#30363d;
+    --text:#c9d1d9; --muted:#8b949e; --accent:#58a6ff;
+    --green:#3fb950; --amber:#d29922; --red:#f85149; --code-bg:#1f2630; --chip:#222838;
+    --green-rgb:63,185,80; --amber-rgb:210,153,34; --red-rgb:248,81,73; --accent-rgb:88,166,255;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  [data-theme="light"] {
+    color-scheme: light;
+    --bg:#fff; --panel:#f6f8fa; --panel2:#eef1f5; --border:#d0d7de;
+    --text:#1f2328; --muted:#656d76; --accent:#0969da;
+    --green:#1a7f37; --amber:#9a6700; --red:#cf222e; --code-bg:#f6f8fa; --chip:#eaeef2;
+    --green-rgb:26,127,55; --amber-rgb:154,103,0; --red-rgb:207,34,46; --accent-rgb:9,105,218;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); line-height:1.6; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size:1.9rem; border-bottom:2px solid var(--border); padding-bottom:.4em; }
+  h2 { font-size:1.3rem; margin-top:2.4em; border-bottom:1px solid var(--border); padding-bottom:.3em; }
+  p.lead { color:var(--muted); }
+  a { color: var(--accent); }
+  code { font-family:var(--mono); background:var(--chip); padding:.12em .4em; border-radius:4px; font-size:.86em; }
+  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:12px 14px; overflow-x:auto; }
+  pre code { background:none; padding:0; font-size:.78rem; line-height:1.5; }
+  table { border-collapse:collapse; width:100%; margin:1em 0; font-size:.9rem; }
+  th, td { border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--panel); }
+  /* gallery demo wrapper: rendered example above, code below */
+  .demo { border:1px solid var(--border); border-radius:10px; padding:18px; margin:1em 0; background:var(--panel); }
+  .demo > .render { margin-bottom:14px; }
+  .demo > pre { margin:0; background:var(--code-bg); }
+  .theme-toggle { position:fixed; top:16px; right:16px; font:600 12px/1 var(--mono);
+    color:var(--muted); background:var(--panel); border:1px solid var(--border);
+    border-radius:999px; padding:8px 12px; cursor:pointer; z-index:10; }
+
+  /* ---- components: kept byte-for-byte in sync with template.html (the asset that ships) ---- */
+  /* ---- Inline helpers ---- */
+  .meta { color: var(--muted); font-size: .85rem; }
+  .file { font-family: var(--mono); font-size: .82rem; color: var(--green); overflow-wrap: anywhere; }
+  .mono { font-family: var(--mono); color: var(--accent); }
+  .ok { color: var(--green); } .no { color: var(--red); }
+  .legend { color: var(--muted); }
+  .legend span { margin-right: 1.5em; font-size: .85rem; white-space: nowrap; }
+  .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px;
+    margin-right: 5px; vertical-align: middle; }
+
+  /* ---- Tags / status pills ---- */
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; padding: .15em .6em;
+    border-radius: 999px; vertical-align: middle; margin-left: .4em; }
+  .tag.now, .tag.done, .tag.ok   { background: rgba(var(--green-rgb),.15); color: var(--green); border: 1px solid rgba(var(--green-rgb),.4); }
+  .tag.gated, .tag.todo, .tag.warn { background: rgba(var(--amber-rgb),.15); color: var(--amber); border: 1px solid rgba(var(--amber-rgb),.4); }
+  .tag.bug, .tag.risk            { background: rgba(var(--red-rgb),.15);   color: var(--red);   border: 1px solid rgba(var(--red-rgb),.4); }
+  .tag.scope, .tag.info          { background: rgba(var(--accent-rgb),.15); color: var(--accent); border: 1px solid rgba(var(--accent-rgb),.4); }
+
+  /* ---- Callouts ---- */
+  .callout { border-left: 4px solid var(--accent); background: var(--panel);
+    padding: 12px 18px; border-radius: 0 8px 8px 0; margin: 1.2em 0; }
+  .callout.warn { border-left-color: var(--amber); }
+  .callout.risk { border-left-color: var(--red); }
+  .callout.ok   { border-left-color: var(--green); }
+  .callout .h { font-weight: 700; font-size: .8rem; font-family: var(--mono);
+    letter-spacing: .04em; text-transform: uppercase; margin-bottom: .3em; color: var(--accent); }
+  .callout.warn .h { color: var(--amber); } .callout.risk .h { color: var(--red); } .callout.ok .h { color: var(--green); }
+
+  /* ---- Collapsible <details> (zero JS) ---- */
+  details { border: 1px solid var(--border); border-radius: 8px; background: var(--panel);
+    padding: 0 16px; margin: 1.2em 0; }
+  details[open] { padding-bottom: 12px; }
+  summary { cursor: pointer; padding: 12px 0; font-weight: 600; list-style: none;
+    display: flex; align-items: center; gap: .5em; }
+  summary::-webkit-details-marker { display: none; }   /* WebKit/Blink */
+  summary::marker { content: ""; }                      /* Firefox/standard */
+  summary::before { content: "▶"; color: var(--accent); font-size: .7em; transition: transform .2s; }
+  details[open] > summary::before { transform: rotate(90deg); }
+  /* progressive smooth-open - Baseline late-2024; degrades to instant elsewhere */
+  @supports (interpolate-size: allow-keywords) {
+    :root { interpolate-size: allow-keywords; }
+    details::details-content { height: 0; overflow: clip;
+      transition: height .25s ease, content-visibility .25s allow-discrete; }
+    details[open]::details-content { height: auto; }
+  }
+
+  /* ---- Flow diagram ---- */
+  .flow { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; margin: 1.2em 0; }
+  .node { flex: 1; min-width: 150px; background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; text-align: center; }
+  .node .t { font-family: var(--mono); font-size: .78rem; color: var(--accent); font-weight: 700; }
+  .node .d { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+  .node.out { border-color: rgba(var(--green-rgb),.45); background: rgba(var(--green-rgb),.07); }
+  .arrow { display: flex; align-items: center; justify-content: center; color: var(--muted);
+    font-size: 1.4rem; padding: 0 6px; }
+
+  /* ---- Numbered steps (CSS counters) ---- */
+  .steps { counter-reset: s; margin: 1em 0; padding: 0; list-style: none; }
+  .steps li { position: relative; padding: 12px 14px 12px 50px; border: 1px solid var(--border);
+    border-radius: 12px; margin: 10px 0; background: var(--panel2); }
+  .steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 12px; top: 12px;
+    width: 26px; height: 26px; border-radius: 8px; background: var(--accent); color: var(--bg);
+    font-family: var(--mono); font-weight: 700; font-size: .8rem;
+    display: flex; align-items: center; justify-content: center; }
+
+  /* ---- Before/after cards ---- */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 1em 0; }
+  .card { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .card h4 { margin: 0 0 8px; font-size: .8rem; font-family: var(--mono);
+    letter-spacing: .04em; text-transform: uppercase; }
+  .card.before h4 { color: var(--amber); } .card.after h4 { color: var(--green); }
+
+  /* ---- File tree ---- */
+  .tree { font-family: var(--mono); font-size: .82rem; line-height: 1.7; color: var(--text);
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; overflow-x: auto; }
+  .tree .new { color: var(--green); } .tree .edit { color: var(--amber); } .tree .dim { color: var(--muted); }
+
+  /* ---- Two-column diff ---- */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1em 0; }
+  .col { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .col .hd { padding: 6px 12px; font-weight: 600; font-size: .78rem; border-bottom: 1px solid var(--border); background: var(--panel); }
+  .col.a .hd { background: rgba(var(--amber-rgb),.12); color: var(--amber); }
+  .col.b .hd { background: rgba(var(--accent-rgb),.12); color: var(--accent); }
+  .col pre { border: 0; border-radius: 0; margin: 0; font-size: .72rem; }
+  .diff { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 1em 0; }
+  .diff-hd { background: var(--panel); padding: 6px 14px; font-weight: 600; font-size: .8rem; border-bottom: 1px solid var(--border); }
+  .diff pre { border: 0; border-radius: 0; margin: 0; }
+  .del { background: rgba(var(--red-rgb),.12);   color: var(--red);   display: block; }
+  .add { background: rgba(var(--green-rgb),.12); color: var(--green); display: block; }
+  .ctx { color: var(--muted); display: block; }
+
+  /* ---- charts (opt-in) ---- */
+  .bar { display:flex; height:1.6rem; border-radius:5px; overflow:hidden; margin:.5em 0; }
+  .bar .seg { transition:flex-grow .6s ease; }
+  .seg.s-green { flex:var(--v); background:var(--green); }
+  .seg.s-amber { flex:var(--v); background:var(--amber); }
+  .seg.s-red   { flex:var(--v); background:var(--red); }
+  .ring { width:110px; color:var(--accent); }
+  .ring .track { stroke:var(--border); }
+  .ring .fill { stroke:currentColor; transition:stroke-dasharray .8s ease; }
+  .ring .label { fill:var(--text); font:600 8px var(--sans); }
+  .spark { width:140px; height:34px; color:var(--accent); }
+  .pb { height:.55rem; background:var(--border); border-radius:4px; overflow:hidden; }
+  .pb-fill { display:block; height:100%; width:var(--pct); background:currentColor; color:var(--green); transition:width .6s ease; }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+  @media (max-width:720px) { .grid2,.cols{grid-template-columns:1fr;} .flow{flex-direction:column;} .arrow{transform:rotate(90deg);} table{display:block;overflow-x:auto;} }
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">◑ theme</button>
+<div class="wrap">
+
+<h1>Component gallery</h1>
+<p class="lead">Every component in the <code>html</code> skill, rendered above its copy-paste markup. Same
+   GitHub-dark design tokens as <code>template.html</code>. Toggle the theme (top-right) to preview the light variant.
+   Charts at the bottom are the <em>opt-in</em> extras.</p>
+
+<h2>Tags / status pills</h2>
+<div class="demo">
+  <div class="render">
+    <span class="tag now">NOW</span><span class="tag gated">GATED</span><span class="tag done">DONE</span>
+    <span class="tag todo">TODO</span><span class="tag bug">BUG</span><span class="tag risk">RISK</span>
+    <span class="tag scope">SCOPE</span><span class="tag info">INFO</span>
+  </div>
+<pre><code>&lt;span class="tag now"&gt;NOW&lt;/span&gt;      &lt;!-- green: now/done/ok --&gt;
+&lt;span class="tag gated"&gt;GATED&lt;/span&gt;  &lt;!-- amber: gated/todo/warn --&gt;
+&lt;span class="tag bug"&gt;BUG&lt;/span&gt;      &lt;!-- red: bug/risk --&gt;
+&lt;span class="tag scope"&gt;SCOPE&lt;/span&gt;  &lt;!-- blue: scope/info --&gt;</code></pre>
+</div>
+
+<h2>Callouts</h2>
+<div class="demo">
+  <div class="render">
+    <div class="callout"><div class="h">Note</div> Default accent callout for context.</div>
+    <div class="callout ok"><div class="h">Confirmed</div> Something verified / safe.</div>
+    <div class="callout warn"><div class="h">Watch</div> A soft concern.</div>
+    <div class="callout risk"><div class="h">Risk</div> A hard blocker needing a decision.</div>
+  </div>
+<pre><code>&lt;div class="callout warn"&gt;
+  &lt;div class="h"&gt;Watch&lt;/div&gt;
+  A soft concern. (.h caption optional; variants: ok / warn / risk)
+&lt;/div&gt;</code></pre>
+</div>
+
+<h2>Collapsible &lt;details&gt; (zero JS)</h2>
+<div class="demo">
+  <div class="render">
+    <details><summary>Click to expand secondary detail</summary>
+      <p style="margin:.6em 0 0">Long tables, full dumps, appendices, exhaustive matrices - anything that
+         shouldn't crowd the main flow. Native, keyboard-accessible, works with JS off.</p></details>
+  </div>
+<pre><code>&lt;details&gt;
+  &lt;summary&gt;Click to expand secondary detail&lt;/summary&gt;
+  &lt;p&gt;Hidden until opened. Keep the top 1-2 sections open, collapse the rest.&lt;/p&gt;
+&lt;/details&gt;</code></pre>
+</div>
+
+<h2>Tables</h2>
+<div class="demo">
+  <div class="render">
+    <table>
+      <tr><th>Layer</th><th>File</th><th>Coverage</th></tr>
+      <tr><td>Unit</td><td class="file">tests/unit/foo_test.ext</td><td>Asserts X.</td></tr>
+      <tr><td>Integration</td><td class="file">tests/it/bar.ext</td><td>End-to-end path.</td></tr>
+    </table>
+  </div>
+<pre><code>&lt;table&gt;
+  &lt;tr&gt;&lt;th&gt;Layer&lt;/th&gt;&lt;th&gt;File&lt;/th&gt;&lt;th&gt;Coverage&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Unit&lt;/td&gt;&lt;td class="file"&gt;tests/unit/...&lt;/td&gt;&lt;td&gt;Asserts X.&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</code></pre>
+</div>
+
+<h2>Numbered steps</h2>
+<div class="demo">
+  <div class="render">
+    <ol class="steps"><li>First do this.</li><li>Then this.</li><li>Finally verify.</li></ol>
+  </div>
+<pre><code>&lt;ol class="steps"&gt;&lt;li&gt;First&lt;/li&gt;&lt;li&gt;Then&lt;/li&gt;&lt;li&gt;Verify&lt;/li&gt;&lt;/ol&gt;</code></pre>
+</div>
+
+<h2>Flow diagram</h2>
+<div class="demo">
+  <div class="render">
+    <div class="flow">
+      <div class="node"><div class="t">input</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">transform</div></div>
+      <div class="arrow">→</div>
+      <div class="node out"><div class="t">output</div></div>
+    </div>
+  </div>
+<pre><code>&lt;div class="flow"&gt;
+  &lt;div class="node"&gt;&lt;div class="t"&gt;input&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="arrow"&gt;&rarr;&lt;/div&gt;
+  &lt;div class="node out"&gt;&lt;div class="t"&gt;output&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+</div>
+
+<h2>Before / after cards</h2>
+<div class="demo">
+  <div class="render">
+    <div class="grid2">
+      <div class="card before"><h4>Before</h4><p style="margin:0">The old shape.</p></div>
+      <div class="card after"><h4>After</h4><p style="margin:0">The new shape.</p></div>
+    </div>
+  </div>
+<pre><code>&lt;div class="grid2"&gt;
+  &lt;div class="card before"&gt;&lt;h4&gt;Before&lt;/h4&gt;...&lt;/div&gt;
+  &lt;div class="card after"&gt;&lt;h4&gt;After&lt;/h4&gt;...&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+</div>
+
+<h2>File tree</h2>
+<div class="demo">
+  <div class="render">
+    <div class="tree">src/<br>├─ <span class="new">new-file.ext</span> <span class="dim">- added</span><br>├─ <span class="edit">changed.ext</span> <span class="dim">- edited</span><br>└─ untouched.ext</div>
+  </div>
+<pre><code>&lt;div class="tree"&gt;src/&lt;br&gt;
+├─ &lt;span class="new"&gt;new-file.ext&lt;/span&gt;&lt;br&gt;
+└─ &lt;span class="edit"&gt;changed.ext&lt;/span&gt;&lt;/div&gt;</code></pre>
+</div>
+
+<h2>Two-column diff + legend</h2>
+<div class="demo">
+  <div class="render">
+    <p class="legend"><span><span class="sw" style="background:var(--amber)"></span>side A</span><span><span class="sw" style="background:var(--accent)"></span>side B</span></p>
+    <div class="cols">
+      <div class="col a"><div class="hd">Variant A</div><pre>old value</pre></div>
+      <div class="col b"><div class="hd">Variant B</div><pre>new value</pre></div>
+    </div>
+    <div class="diff"><div class="diff-hd">Differences</div><pre><span class="ctx"> shared line</span>
+<span class="del">- removed</span>
+<span class="add">+ added</span></pre></div>
+  </div>
+<pre><code>&lt;div class="cols"&gt;
+  &lt;div class="col a"&gt;&lt;div class="hd"&gt;Variant A&lt;/div&gt;&lt;pre&gt;...&lt;/pre&gt;&lt;/div&gt;
+  &lt;div class="col b"&gt;&lt;div class="hd"&gt;Variant B&lt;/div&gt;&lt;pre&gt;...&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="diff"&gt;&lt;div class="diff-hd"&gt;Differences&lt;/div&gt;&lt;pre&gt;&lt;span class="ctx"&gt; ctx&lt;/span&gt;
+&lt;span class="del"&gt;- removed&lt;/span&gt;
+&lt;span class="add"&gt;+ added&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</code></pre>
+</div>
+
+<h2>Inline helpers</h2>
+<div class="demo">
+  <div class="render">
+    <p class="file">path/to/file.ext</p>
+    <p>Inline <code>code</code>, a <span class="mono">.mono token</span>, status <span class="ok">✅ ok</span> / <span class="no">❌ no</span>, and <span class="meta">muted .meta caption text</span>.</p>
+  </div>
+<pre><code>&lt;p class="file"&gt;path/to/file.ext&lt;/p&gt;
+&lt;span class="ok"&gt;✅ ok&lt;/span&gt; &lt;span class="no"&gt;❌ no&lt;/span&gt;
+&lt;span class="meta"&gt;muted caption&lt;/span&gt;</code></pre>
+</div>
+
+<h2>Charts - opt-in (pure CSS / inline SVG, no library)</h2>
+<p class="lead">Theme-aware via <code>currentColor</code> + CSS vars. Each carries an <code>aria-label</code>; gate any
+   animation behind <code>prefers-reduced-motion</code> (already done above).</p>
+
+<div class="demo">
+  <div class="render">
+    <p class="meta">Stacked bar - proportions via <code>flex-grow</code></p>
+    <div class="bar" role="img" aria-label="620 shared, 180 left-only, 200 right-only">
+      <span class="seg s-green" style="--v:620"></span>
+      <span class="seg s-amber" style="--v:180"></span>
+      <span class="seg s-red" style="--v:200"></span>
+    </div>
+  </div>
+<pre><code>&lt;div class="bar" role="img" aria-label="620 shared, 180 A, 200 B"&gt;
+  &lt;span class="seg s-green" style="--v:620"&gt;&lt;/span&gt;
+  &lt;span class="seg s-amber" style="--v:180"&gt;&lt;/span&gt;
+  &lt;span class="seg s-red"   style="--v:200"&gt;&lt;/span&gt;
+&lt;/div&gt;
+/* CSS: .seg{flex:var(--v)} - values are relative, need not sum to 100 */</code></pre>
+</div>
+
+<div class="demo">
+  <div class="render">
+    <p class="meta">Donut / progress ring - SVG circle, r=15.915 so circumference=100 ⇒ dasharray reads as %</p>
+    <svg viewBox="0 0 42 42" class="ring" role="img" aria-label="Coverage 72%">
+      <circle class="track" cx="21" cy="21" r="15.915" fill="none" stroke-width="4"></circle>
+      <circle class="fill" cx="21" cy="21" r="15.915" fill="none" stroke-width="4"
+              stroke-dasharray="72 28" stroke-dashoffset="25" stroke-linecap="round"></circle>
+      <text x="21" y="21" dy=".35em" text-anchor="middle" class="label">72%</text>
+    </svg>
+  </div>
+<pre><code>&lt;svg viewBox="0 0 42 42" class="ring" role="img" aria-label="Coverage 72%"&gt;
+  &lt;circle class="track" cx="21" cy="21" r="15.915" fill="none" stroke-width="4"/&gt;
+  &lt;circle class="fill"  cx="21" cy="21" r="15.915" fill="none" stroke-width="4"
+          stroke-dasharray="72 28" stroke-dashoffset="25" stroke-linecap="round"/&gt;
+  &lt;text x="21" y="21" dy=".35em" text-anchor="middle" class="label"&gt;72%&lt;/text&gt;
+&lt;/svg&gt;
+/* dasharray="&lt;pct&gt; &lt;100-pct&gt;"; offset 25 starts the arc at 12 o'clock */</code></pre>
+</div>
+
+<div class="demo">
+  <div class="render">
+    <p class="meta">Sparkline - SVG polyline, x=index, y=max−value</p>
+    <svg class="spark" viewBox="0 0 9 15" preserveAspectRatio="none" role="img" aria-label="Trend, last value 11">
+      <polyline points="0,14 1,15 2,10 3,11 4,7 5,5 6,0 7,5 8,10 9,11" fill="none"
+                stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+    </svg>
+  </div>
+<pre><code>&lt;svg class="spark" viewBox="0 0 9 15" preserveAspectRatio="none" role="img" aria-label="Trend"&gt;
+  &lt;polyline points="0,14 1,15 2,10 ..." fill="none" stroke="currentColor"
+            stroke-width="2" vector-effect="non-scaling-stroke"/&gt;
+&lt;/svg&gt;</code></pre>
+</div>
+
+<div class="demo">
+  <div class="render">
+    <p class="meta">Progress bar - accessible</p>
+    <div class="pb" role="progressbar" aria-label="Coverage" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100" style="--pct:72%">
+      <span class="pb-fill"></span>
+    </div>
+  </div>
+<pre><code>&lt;div class="pb" role="progressbar" aria-label="Coverage"
+     aria-valuenow="72" aria-valuemin="0" aria-valuemax="100" style="--pct:72%"&gt;
+  &lt;span class="pb-fill"&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;!-- or simply the native element: &lt;progress max="100" value="72"&gt;&lt;/progress&gt; --&gt;</code></pre>
+</div>
+
+</div>
+<script>
+  (function () {
+    try {
+      var tg = document.getElementById("theme-toggle");
+      if (tg) tg.addEventListener("click", function () {
+        var n = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+        document.documentElement.dataset.theme = n;
+        try { localStorage.setItem("theme", n); } catch (e) {}
+      });
+    } catch (e) {}
+  })();
+</script>
+</body>
+</html>
