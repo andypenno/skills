@@ -70,11 +70,23 @@ Both hosts support ETag revalidation - send `If-None-Match` and a 304 means noth
 
 🧨 **Both `gh api` and `glab api` exit 1 on a 304.** A poll loop that treats non-zero as failure will abort on the first unchanged cycle. Distinguish 304 from a real error before acting on the exit code.
 
-Poll on a sane interval (30-60s), and state the interval when you start. Stop conditions, all of them reportable:
+**Interval backoff.** State the schedule when you start, then back off while nothing changes:
+
+| Elapsed with no change | Interval |
+|---|---|
+| 0-1h | 5 min |
+| 1-6h | 30 min |
+| 6h | stop, ask what to do next |
+
+Any real change resets the clock back to 5 min.
+
+**When nothing changed, the whole response is `No update, sleeping...`** No verdict restatement, no state dump, no "still waiting on approval". One line, then sleep.
+
+Stop conditions, all reportable:
 
 - Mergeable - the goal
 - A blocker that needs the user (approval required, changes requested, conflicts)
-- Nothing changed for a long stretch - say so and ask whether to keep waiting rather than looping silently
+- 6h with no change - report the last known state and ask whether to keep waiting
 - The user's own stop
 
 ## Each cycle
@@ -92,4 +104,4 @@ If the user does ask: `glab mr merge` **defaults to `--auto-merge=true` when a p
 
 ## Report
 
-Lead with the verdict and, when blocked, the *specific* blocker - on GitLab quote `detailed_merge_status`, on GitHub name which of review/checks/threads is responsible rather than repeating `BLOCKED`. Then the delta since last cycle. Then what needs a human.
+Only on a cycle that had a change. Lead with the verdict and, when blocked, the *specific* blocker - on GitLab quote `detailed_merge_status`, on GitHub name which of review/checks/threads is responsible rather than repeating `BLOCKED`. Then the delta since last cycle. Then what needs a human.
