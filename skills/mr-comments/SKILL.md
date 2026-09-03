@@ -1,8 +1,8 @@
 ---
 name: mr-comments
 description: |-
-  Trigger when review feedback on a PR or MR needs reading or acting on - address the review comments, fix the MR comments, what did the reviewer ask for, are there unresolved threads, reply to the review. Works on GitHub and GitLab including self-hosted. For following the PR/MR over time use /watch-mr.
-  Keywords: review comments, MR comments, PR comments, address the feedback, fix review comments, unresolved threads, what did the reviewer say, resolve the thread, reply to the review, reviewer asked for
+  Trigger when review feedback on a PR or MR needs reading or acting on - address the review comments, fix the MR comments, what did the reviewer ask for, are there unresolved threads, reply to the review. Also when a reviewer needs pulling back in once their comments are done. Works on GitHub and GitLab including self-hosted. For following the PR/MR over time use /watch-mr.
+  Keywords: review comments, MR comments, PR comments, address the feedback, fix review comments, unresolved threads, what did the reviewer say, resolve the thread, reply to the review, reviewer asked for, re-request review, reset their review, notify the reviewer, ask for another look
 ---
 
 # MR Comments
@@ -75,6 +75,19 @@ Then, before editing: list each comment, your reading of what it asks, and what 
 ⚠️ Posting and resolving are outward-facing and visible to colleagues. Do not do either on your own initiative - make the code changes, then show the user the replies you propose and let them send them.
 
 ⚠️ Interactive traps that hang a non-interactive run: `gh pr review` with no flags prompts; `gh pr comment` with no `-b`/`-F` opens an editor; `glab mr note create` with no `-m` opens an editor. Every `glab mr note *` subcommand is marked EXPERIMENTAL in 1.103.0 - `glab api` is the stable fallback.
+
+## Closing the loop with each reviewer
+
+A reviewer whose threads you resolved gets no notification from the resolve itself. Group the threads by author (`author.login` on GitHub, `notes[0].author.username` on GitLab), and once **every** thread from one author is addressed and the fixes are pushed, re-request their review. Per author, not once at the end - two reviewers rarely finish together.
+
+- **GitLab**: `glab mr note create N -m '/request_review @LOGIN'`. The quick action resets that reviewer's state, notifies them, and creates a todo. Same EXPERIMENTAL caveat as every `glab mr note` subcommand.
+- **GitHub**: `gh pr edit N --add-reviewer LOGIN`. Adding someone already listed is what re-requests the review, so read the command's output rather than assuming it landed.
+
+An approval is not a review state: neither command removes one. GitLab drops approvals only if the project has "remove all approvals when commits are added" set, and GitHub only on dismissal or a stale-review rule. If the user needs the approval itself gone, hand that back to them.
+
+⚠️ Push before you re-request, in that order. A reviewer pulled back in to look at commits that are not there yet reads as noise, and it costs you the round trip you were trying to save.
+
+⚠️ Same rule as posting and resolving: this notifies a colleague, so propose it and let the user send it. List which reviewers are ready to be pinged and which threads still block each one.
 
 ## Report
 
