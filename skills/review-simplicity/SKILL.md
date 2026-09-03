@@ -1,8 +1,8 @@
 ---
 name: review-simplicity
 description: |-
-  Trigger when the question is whether code should exist at all - what can be deleted, over-engineering, over-abstraction, bloat, boilerplate, or a change bigger than its problem. Also when reviewing LLM-written code, where speculative abstraction is the default failure. One of /qa-loop's lenses.
-  Keywords: over-engineered, over-abstracted, what can we delete, simplify, too complex, bloat, boilerplate, YAGNI, unnecessary abstraction, duplication, dead code
+  Trigger when the question is whether code should exist at all - what can be deleted, over-engineering, over-abstraction, bloat, boilerplate, or a change bigger than its problem. Also when reviewing LLM-written code, where speculative abstraction is the default failure, and when auditing a whole repo for bloat rather than a diff. One of /qa-loop's lenses.
+  Keywords: over-engineered, over-abstracted, what can we delete, simplify, too complex, bloat, boilerplate, YAGNI, unnecessary abstraction, duplication, dead code, audit for bloat, what can I delete from this repo
 ---
 
 # Review - Simplicity
@@ -10,6 +10,8 @@ description: |-
 Hunts code that shouldn't exist. Scope, context and reporting come from `/code-review` Steps 1, 2 and 4 - read those first, then apply this lens instead of its Step 3.
 
 This lens deletes; it does not hunt bugs. Pair it with `/review-correctness`.
+
+It is also the one lens that works with no diff at all: ask for it repo-wide (`/code-review` Step 1, last row) and it becomes an over-engineering audit, ranked biggest cut first.
 
 ## The ladder
 
@@ -61,7 +63,17 @@ These are never findings. Do not propose removing them:
 
 ## Reporting
 
-Use `/code-review` Step 4, one line per finding: **location - what to cut - what replaces it**. Prefer a shorter diff over a cleverer one. If the honest answer is "this is about the right size", say that and stop.
+Use `/code-review` Step 4, one line per finding, each tagged with the rung it failed:
+
+- `delete:` built for a requirement nobody stated, or dead already. Replacement: nothing.
+- `reuse:` the repo already has this. Name the existing helper, type or pattern.
+- `stdlib:` hand-rolled what the standard library ships. Name the function.
+- `native:` a dependency or hand-written code doing what the platform does. Name the feature.
+- `shrink:` same behaviour, fewer lines. Show the shorter form.
+
+End with the number that matters: `net: -<N> lines, -<M> deps possible.` A finding with no replacement to name is not yet a finding.
+
+Prefer a shorter diff over a cleverer one. If the honest answer is "this is about the right size", say that and stop.
 
 ## Verdict
 

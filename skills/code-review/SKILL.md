@@ -22,6 +22,7 @@ Ask the user what they want reviewed if it's not clear. Common scopes:
 | Between branches/commits | `git diff <ref1>..<ref2>` |
 | A specific commit | `git show <commit>` |
 | Specific files | Read the files directly |
+| The whole tree, no diff | Read the tree. An audit, not a review - only `/review-simplicity` and `/review-tests` make sense at this scope |
 
 If the user says "review my changes" without more context, default to `git diff --cached`. If nothing is staged, ask whether they mean all uncommitted changes or the whole branch.
 
