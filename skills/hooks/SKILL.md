@@ -1,8 +1,8 @@
 ---
 name: hooks
 description: |-
-  Trigger when setting up, debugging or changing a verification hook - a git pre-commit or pre-push hook, or a Claude Code Stop / PreToolUse hook. Also when a hook never fires, fires twice, cannot be turned off, loops the agent, hangs a turn, or floods the context with build output.
-  Keywords: hook, hooks, pre-commit, pre-push, git hook, stop hook, pre-stop, PreToolUse, hooksPath, hook not firing, hook loop, disable the hook, hook timeout
+  Trigger when setting up, debugging or changing a verification hook - a git pre-commit or pre-push hook, or a Claude Code Stop / PreToolUse hook. Also when a hook never fires, fires twice, cannot be turned off, loops the agent, hangs a turn, or floods the context with build output. Also when a hook injects instructions into a session and they fail to reach subagents.
+  Keywords: hook, hooks, pre-commit, pre-push, git hook, stop hook, pre-stop, PreToolUse, SessionStart, SubagentStart, hooksPath, hook not firing, hook loop, disable the hook, hook timeout, injected rules missing in subagent
 ---
 
 # Hooks
@@ -72,6 +72,12 @@ Hash the inputs - changed-file contents, their path list, `HEAD`, and **the hash
 Including the hook's own hash is the part people miss: without it, editing the verification logic leaves stale passes trusted under new rules.
 
 Take a lock if two triggers can overlap (a push during a `Stop` run will collide over build output). A lock directory with a pid file inside, plus a grace period before treating a pid-less lock as abandoned, avoids a racing run stealing a live lock.
+
+## Injecting context is a second, separate hook
+
+A `SessionStart` hook that emits text puts it in the **parent thread only**. Subagents never see it, so a rule injected that way silently stops applying inside every `Task` the agent spawns - the exact work where it matters most. Add a `SubagentStart` hook emitting the same text, and gate both on one flag file so "off" means off in both places.
+
+Prefer an instruction file for anything permanent: `CLAUDE.md` is read in both contexts, costs no process, and can be diffed. Injection earns its keep only when the text has to vary per session (a detected toolchain, a mode the user toggles mid-run).
 
 ## Turning it off
 
