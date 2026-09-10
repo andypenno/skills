@@ -68,13 +68,28 @@ Then, before editing: list each comment, your reading of what it asks, and what 
 | | GitHub | GitLab |
 |---|---|---|
 | Reply in thread | no CLI - `gh api -X POST repos/{o}/{r}/pulls/N/comments/{comment_id}/replies -f body='…'` | `glab mr note create N --reply <discussion-id> -m '…'` |
-| New inline comment | `gh api -X POST repos/{o}/{r}/pulls/N/comments -f body=… -f commit_id=SHA -f path=… -F line=42 -f side=RIGHT` | `glab mr note create N --file <path> --line 42 -m '…'` |
+| New inline comment | `gh api -X POST repos/{o}/{r}/pulls/N/comments -f body=… -f commit_id=SHA -f path=… -F line=42 -f side=RIGHT` | needs a nested JSON `position` - see the recipe below, **not** `glab mr note create --file --line` |
 | Mark resolved | **no CLI and no REST** - GraphQL `resolveReviewThread(input:{threadId:"PRRT_…"})`, needs the node id from the query above | `glab mr note resolve <discussion-id> [N]` |
 | Non-blocking note | n/a | `glab mr note create N -m '…' --resolvable=false` |
 
 ⚠️ Posting and resolving are outward-facing and visible to colleagues. Do not do either on your own initiative - make the code changes, then show the user the replies you propose and let them send them.
 
 ⚠️ Interactive traps that hang a non-interactive run: `gh pr review` with no flags prompts; `gh pr comment` with no `-b`/`-F` opens an editor; `glab mr note create` with no `-m` opens an editor. Every `glab mr note *` subcommand is marked EXPERIMENTAL in 1.103.0 - `glab api` is the stable fallback.
+
+🧨 **A GitLab inline comment needs a nested JSON `position`, and glab drops it silently.** `-f position[new_line]=N` (and `--field`) send flat keys the API ignores, so the note posts `201` as an unanchored `DiscussionNote` with `position: null` - there is no error to catch. `glab mr note create --file --line` is EXPERIMENTAL and just as unreliable. Send `position` as a JSON body via `--input`, and set the content-type or you get `HTTP 415`:
+
+```bash
+glab api "projects/:fullpath/merge_requests/N" | jq .diff_refs   # base_sha/start_sha/head_sha; glab api has no --jq
+glab api -X POST -H 'Content-Type: application/json' \
+  projects/:fullpath/merge_requests/N/discussions --input - <<'JSON'
+{ "body": "…",
+  "position": { "position_type": "text",
+    "base_sha": "BASE", "start_sha": "START", "head_sha": "HEAD",
+    "new_path": "path/to/file", "old_path": "path/to/file", "new_line": 42 } }
+JSON
+```
+
+An added line takes `new_line` only; a context or removed line also needs `old_line`. Then verify the created note: `type` must be `DiffNote` with a non-null `position` - `DiscussionNote`/`null` means it fell back to an unanchored comment and needs deleting and reposting.
 
 ## Closing the loop with each reviewer
 
