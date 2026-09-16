@@ -63,6 +63,10 @@ Then, before editing: list each comment, your reading of what it asks, and what 
 - If you disagree with a comment, do not silently comply and do not silently ignore it. Say so, with the reason, and let the user decide.
 - A comment that reveals a class of problem: fix the instance asked for, and **report the siblings** rather than fixing them unasked. See `/review-correctness` for the sweep.
 
+## Identify the agent in every comment
+
+A posted comment shows under the user's account, so readers know whose it is but not that an agent wrote it. Open every comment you draft - thread reply, new inline comment, non-blocking note, re-request - with a first line that identifies it as agent-authored. Use the interaction style the instruction files define, its opener line verbatim, when one exists; with none defined, fall back to a plain marker naming the agent, e.g. `🤖 Drafted by Claude Code.` The line is part of the body, so it goes to the user for approval with the rest.
+
 ## Replying and resolving
 
 | | GitHub | GitLab |
