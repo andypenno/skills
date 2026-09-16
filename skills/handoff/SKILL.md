@@ -1,6 +1,5 @@
 ---
 name: handoff
-disable-model-invocation: true
 description: |-
   Trigger when work needs to continue in a different session or by a different agent - the user asks for a prompt for the next agent, a handoff, a summary of where things are up to, or is stopping mid-task. Also when the next step needs access this session lacks (a running server, another repo, another machine).
   Keywords: handoff, hand over, prompt for the next agent, next session, where were we, where is it up to, pick this up later, self-contained prompt, pass this on, brief the next agent

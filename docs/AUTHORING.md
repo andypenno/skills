@@ -15,7 +15,6 @@ The plugin root is the repo root deliberately. Top-level `skills/` is Claude Cod
 | Pattern | Frontmatter | Use for |
 |---|---|---|
 | Auto-triggered | none (default) | Anything the agent should reach for on intent. The default. |
-| User only | `disable-model-invocation: true` | Expensive or deliberate work the user should choose. Currently only `qa-loop`. |
 | Model only | `user-invocable: false` | Rare. Prefer leaving it discoverable. |
 | File-scoped | `paths: "*.yml"` | Conventions that only apply to certain files. |
 

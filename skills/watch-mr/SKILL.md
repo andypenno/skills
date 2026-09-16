@@ -1,6 +1,5 @@
 ---
 name: watch-mr
-disable-model-invocation: true
 description: |-
   Trigger when an open PR or MR needs following over time rather than a one-off check - watch the MR, tell me when it's ready to merge, babysit this PR, has anyone reviewed it, what's changed on the MR, why can't this merge yet. Delegates to /watch-ci for pipelines and /mr-comments for review feedback.
   Keywords: watch the MR, watch the PR, babysit the MR, is it ready to merge, why can't it merge, what changed on the MR, any new comments, has it been approved, merge readiness, shepherd the PR

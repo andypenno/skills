@@ -1,6 +1,5 @@
 ---
 name: docs-audit
-disable-model-invocation: true
 description: |-
   Trigger when documentation needs checking rather than writing - the user asks whether docs are outdated, wrong, or missing anything, wants a README or doc reviewed, or says a doc is too developer-focused, too long, or written for the wrong reader. Also after renaming a concept or dropping a feature, when docs still describe the old world.
   Keywords: docs review, review the readme, is anything outdated, stale docs, docs are wrong, too developer coded, user focused, rewrite the readme, doc audit, still talks about, out of date documentation

@@ -1,6 +1,5 @@
 ---
 name: watch-ci
-disable-model-invocation: true
 description: |-
   Trigger when the user wants CI on a PR or MR followed to a conclusion - watch the pipeline, tell me when it goes green, is it done yet, did the checks pass, get the failing job's log, rerun the failed jobs. Works on GitHub and GitLab including self-hosted. For diagnosing why a pipeline broke, use /triage.
   Keywords: watch ci, watch the pipeline, wait for checks, did CI pass, is the pipeline green, pipeline status, failing job log, rerun failed jobs, retry the pipeline, checks still running, babysit the MR
