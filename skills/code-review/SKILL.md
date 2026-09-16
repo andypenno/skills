@@ -80,6 +80,8 @@ Each finding carries:
 3. A concrete failure scenario - inputs or state that produce the wrong result. A finding you cannot make fail is a guess; label it as one or drop it.
 4. A concrete fix
 
+Posting the report to a PR or MR is outward-facing: never post on your own initiative, and never without the user's approval. Once they approve, post through `/mr-comments`, which owns the propose-before-send flow and the host-specific commands. Every comment opens with a first line that identifies it as agent-authored and names the agent - the interaction style's opener with an explicit agent attribution appended, e.g. a trailing `@ Claude`, when the instruction files define a style, else a plain marker naming the agent, e.g. `🤖 Drafted by Claude Code.`
+
 ## Guidelines
 
 - Specific and actionable. "This could be better" is noise; "this `forEach` mutates the input - use `map`" is a review.

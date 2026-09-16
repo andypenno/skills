@@ -1,8 +1,8 @@
 ---
 name: mr-comments
 description: |-
-  Trigger when review feedback on a PR or MR needs reading or acting on - address the review comments, fix the MR comments, what did the reviewer ask for, are there unresolved threads, reply to the review. Also when a reviewer needs pulling back in once their comments are done. Works on GitHub and GitLab including self-hosted. For following the PR/MR over time use /watch-mr.
-  Keywords: review comments, MR comments, PR comments, address the feedback, fix review comments, unresolved threads, what did the reviewer say, resolve the thread, reply to the review, reviewer asked for, re-request review, reset their review, notify the reviewer, ask for another look
+  Trigger when review feedback on a PR or MR needs reading or acting on - address the review comments, fix the MR comments, what did the reviewer ask for, are there unresolved threads, reply to the review. Also when posting anything to a PR or MR - post a review comment, publish the findings, draft a PR comment, reply to a thread - and when a reviewer needs pulling back in once their comments are done. Works on GitHub and GitLab including self-hosted. For following the PR/MR over time use /watch-mr.
+  Keywords: review comments, MR comments, PR comments, address the feedback, fix review comments, unresolved threads, what did the reviewer say, resolve the thread, reply to the review, reviewer asked for, re-request review, reset their review, notify the reviewer, ask for another look, post a review comment, leave a comment on the PR, comment on the MR, draft a PR comment, publish my review, post the findings
 ---
 
 # MR Comments
@@ -65,7 +65,7 @@ Then, before editing: list each comment, your reading of what it asks, and what 
 
 ## Identify the agent in every comment
 
-A posted comment shows under the user's account, so readers know whose it is but not that an agent wrote it. Open every comment you draft - thread reply, new inline comment, non-blocking note, re-request - with a first line that identifies it as agent-authored. Use the interaction style the instruction files define, its opener line verbatim, when one exists; with none defined, fall back to a plain marker naming the agent, e.g. `🤖 Drafted by Claude Code.` The line is part of the body, so it goes to the user for approval with the rest.
+A posted comment shows under the user's account, so readers know whose it is but not that an agent wrote it. Open every comment you draft - thread reply, new inline comment, non-blocking note, re-request - with a first line that identifies it as agent-authored and names the agent. When the instruction files define an interaction style, use its opener as that line and append an explicit agent attribution, e.g. a trailing `@ Claude`; with none defined, use a plain marker naming the agent, e.g. `🤖 Drafted by Claude Code.` A reader must be able to tell an agent wrote it, and which one. The line is part of the body, so it goes to the user for approval with the rest. The body below it is prose you are publishing - apply the writing conventions the instruction files set, straight quotes and no em or en dashes included, even to a draft already approved.
 
 ## Replying and resolving
 
