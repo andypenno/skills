@@ -1,56 +1,37 @@
 ---
 name: qa-loop
-disable-model-invocation: true
 description: |-
-  Trigger when the user wants a change checked by independent reviewers rather than by you - a QA loop, review round, multiple subagents, an unbiased or fresh-perspective review, or rounds until nothing new comes back. Expensive: prefer /code-review for a single pass.
-  Keywords: qa loop, qa round, run the loop, another round, spin up subagents, independent review, unbiased, fresh eyes, don't bias them
+  Trigger when iterating on a change with a review after each round - "it's time for a qa loop", "run the loop", rounds until it comes back clean. Each round runs a /code-review pass, then you fix and re-run. Expensive: for a single review with no loop, use /code-review.
+  Keywords: qa loop, qa round, run the loop, another round, iterate until clean, review after each change, fresh eyes, keep looping
 ---
 
 # QA Loop
 
-Round-based adversarial review by independent subagents. You do not review the work yourself - you were the one who wrote it, so your review inherits every assumption that produced the bugs.
+Review between every iteration: each round is a `/code-review` pass, you fix what it finds, and you re-run until a round comes back clean. This skill owns the loop - the pass, the lenses and the report all come from `/code-review`.
 
 ## Step 1 - Fix the scope once
 
-Resolve the diff under review before spawning anything, using `/code-review` Step 1. Every round in this session reviews the same scope, so a later round can be compared against an earlier one.
+Resolve the diff under review before the first round, using `/code-review` Step 1. Every round in this session reviews the **same** scope, so a later round can be compared against an earlier one - do not let it drift as you fix.
 
-Then pick the lenses. Default three:
+## Step 2 - Run a round
 
-| Lens | Skill |
-|---|---|
-| Does it work? | `/review-correctness` |
-| Should it exist, in this shape? | `/review-simplicity` |
-| Would we notice if it broke? | `/review-tests` |
-
-Add `/agent-authoring` as a fourth lens **only** when the diff touches agent-facing text - a `SKILL.md`, `CLAUDE.md`, `AGENTS.md`, an MCP tool description, or a subagent prompt. Three lenses is the deliberate default ceiling; every lens is a full-context subagent and the cost is real.
-
-## Step 2 - Spawn the round
-
-One subagent per lens, all in a single message so they run concurrently.
-
-Every prompt must contain, verbatim in substance:
-
-- **The scope only.** The diff command or file list. Nothing about what you built, why, what you were worried about, or what a previous round found.
-- **The lens.** "Invoke `/review-correctness` and apply it to this scope."
-- **No nesting.** "Do not spawn subagents. Do all the work yourself."
-- **Shell rules.** "Use `rg` not grep, `fd` not find, `bat` not cat. Never use `rm`." Subagents default to POSIX tools unless told otherwise.
-- **Evidence.** "Every finding names a concrete failing case - inputs or state, and the wrong result. If you cannot construct one, mark the finding unverified."
-- **The report format.** `/code-review` Step 4.
-- **The verdict.** "End your report with `VERDICT: PASS` or `VERDICT: FAIL`, judged against the pass/fail criteria in your own lens skill. You own that call. Do not soften it, and never report PASS for a check you could not complete."
-
-⚠️ The single thing that ruins this: leaking your own framing. "I refactored the dedupe logic, check I didn't break it" tells the reviewer where to look and where not to. It converts three independent reviewers into three copies of you.
+Run a `/code-review` pass over the fixed scope. It picks the lenses, spawns them as independent subagents on scope alone, and returns each lens's `PASS`/`FAIL` with findings. The independence is the point, and `/code-review` Step 3 enforces it - do not add framing of your own on top.
 
 ## Step 3 - Triage before fixing
 
 ⚠️ **You do not own the verdict.** Each lens defines its own pass/fail criteria and returns `PASS` or `FAIL`. You may reject an individual *finding* with a recorded reason, but you cannot turn a lens's `FAIL` into a pass, and you cannot declare the work done because what remains looks minor to you. Deciding for yourself what counts as finished is the exact failure this loop exists to prevent.
 
-Findings are claims, not work. Merge duplicates across lenses, then judge each one:
+Findings are claims, not work. `/code-review` already merged duplicates across lenses; judge each one:
 
 - **Confirmed** - the failing case is real and reproducible. Fix it.
 - **Unverified** - plausible, no failing case. Spend one cheap check to settle it; if it survives, fix it, if not, drop it.
 - **Rejected** - wrong, or already handled elsewhere in the code the reviewer didn't read. Record why in one line.
 
-Reviewers looking for problems will find some that aren't there. Accepting every finding is as bad as reviewing your own work, and it grows the diff the simplicity lens just asked you to shrink.
+Reviewers looking for problems will find some that aren't there. Accepting every finding uncritically is its own failure, and it grows the diff the simplicity lens just asked you to shrink.
+
+Suggestions are the implementer's call. Take the ones you agree with, list the rest in the closing report, and move on - they do not need a justification and they do not hold a round open.
+
+One escape hatch, for the case where a lens is right and the fix is not yours to make: a Critical or Warning whose fix falls outside the scope you were given goes to the **user** with the reviewer's reasoning and your recommendation. Record it as escalated. You still may not re-grade it or absorb it silently, and the round stays open until the user rules on it.
 
 Fix confirmed findings, smallest correct change each, at the root rather than at the symptom. Never expand the scope of the change beyond what the user or ticket specified because the reviewer found a problem. You may notify the user that the fix is larger than they expected, but do not change the scope to satisfy a reviewer.
 
@@ -58,13 +39,13 @@ Fix confirmed findings, smallest correct change each, at the root rather than at
 
 Re-run the check that would fail if the fix were wrong: the build, the affected tests, or the original failing case on the real target. A round is not closed by "applied the fixes" - it is closed by the evidence.
 
-Where the change is only observable in a running system, drive it there. Say plainly if verification was impossible in this environment rather than implying it passed.
+Where the change is only observable in a running system, drive it there with `/manual-qa`. Say plainly if verification was impossible in this environment rather than implying it passed.
 
 ## Step 5 - Next round, or stop
 
-Spawn a fresh round on the same scope. **Fresh subagents, same unbiased prompts** - do not tell them what the last round found or what you fixed, or they will confirm your work instead of testing it.
+Run a fresh `/code-review` round on the same scope. Each round is independent by construction, but do not smuggle in what the last round found or what you fixed - a reviewer told where to look confirms your work instead of testing it.
 
-Stop when **every lens returns `PASS` in the same round** - not after a fixed number of rounds, and not when the findings start looking minor. A round in which any lens returns `FAIL` is an open round, even if you disagree with it.
+Stop when **every lens returns `PASS` in the same round** - not after a fixed number of rounds. A round in which any lens returns `FAIL` is an open round, even if you disagree with it. A `PASS` carrying Suggestions is still a `PASS`: there is no round that ends with nothing left anyone could say, and chasing one is how this loop turns into a treadmill.
 
 Two exits that are not a pass, and must be said out loud rather than absorbed:
 

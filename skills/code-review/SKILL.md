@@ -1,13 +1,13 @@
 ---
 name: code-review
 description: |-
-  Trigger when a review is asked for without a named lens, or before a commit, push or MR. Prefer /review-correctness, /review-simplicity or /review-tests when the user names that concern, and /qa-loop when they want independent reviewers or repeated rounds.
-  Keywords: code review, review my changes, review this diff, check this code, second opinion, look over my MR
+  Trigger to review a diff - "let's do a code review on this", review this PR or MR, a second opinion before merge. Runs the review as independent lens subagents. Prefer /review-correctness, /review-simplicity or /review-tests when the user names one concern.
+  Keywords: code review, review this PR, review this MR, review this diff, check this code, second opinion, review my changes
 ---
 
 # Code Review
 
-The general-purpose single review pass, and the **shared contract** the specialised lenses build on. `/review-correctness`, `/review-simplicity` and `/review-tests` all reuse Steps 1, 2 and 4 from here and replace only Step 3.
+The entry point for a review: one pass over a diff by independent lens subagents, merged into a single report.
 
 ## Step 1 - Determine the scope
 
@@ -35,30 +35,43 @@ Then read what the repo expects of you before judging it:
 - Instruction files: `fd -H -i '^(claude|agents)(\.local)?\.md$' <repo-root>` - root, `.claude/`, and per-directory. A convention stated there outranks your own taste.
 - Config that encodes style: `.editorconfig`, `.eslintrc`, `.prettierrc`, `Directory.Build.props`, linter settings.
 
-## Step 3 - Analyse the changes
+## Step 3 - Run the lenses
 
-A single pass across every dimension. Each row is deliberately shallow - when the change warrants depth, or the user asks for it, invoke the lens instead.
+Pick the lenses, then spawn one subagent per lens in a single message so they run concurrently. Default three:
 
-| Dimension | Check for | Depth lives in |
-|-----------|-----------|----------------|
-| Correctness | Logic and off-by-one errors, null/empty handling, unhandled failure paths, wrong API contract, concurrency | `/review-correctness` |
-| Simplicity | Abstraction with one caller, reinvented stdlib, config for a constant, duplicated logic | `/review-simplicity` |
-| Tests | New logic paths with no test, changed behaviour with stale tests, untested edge cases | `/review-tests` |
-| Security | Injection (SQL, command, template, XSS), hardcoded secrets, missing authn/authz, unvalidated input at a trust boundary, path traversal | this skill |
-| Performance | N+1 queries, unbounded fetch or missing pagination, avoidable allocation in a hot path, accidental O(n²) | this skill |
-| Readability | Naming that needs a comment to survive, functions doing several jobs, deep nesting that early returns would flatten, dead or commented-out code | this skill |
+| Question | Lens |
+|---|---|
+| Does it work? | `/review-correctness` |
+| Should it exist, in this shape? | `/review-simplicity` |
+| Would we notice if it broke? | `/review-tests` |
+
+Add `/agent-authoring` as a fourth **only** when the diff touches agent-facing text - a `SKILL.md`, `CLAUDE.md`, `AGENTS.md`, an MCP tool description, or a subagent prompt. Three lenses is the deliberate ceiling; every lens is a full context and the cost is real. For a diff that is **only** prose or instruction text, `/agent-authoring` **replaces** the code lenses rather than joining them.
+
+Every spawn prompt contains, verbatim in substance:
+
+- **The scope only.** The diff command or file list. Nothing about what the change is for or what you suspect - leaking your framing turns independent reviewers into copies of you.
+- **The lens.** "Invoke `/review-correctness` and apply it to this scope."
+- **No nesting.** "Do not spawn subagents. Do all the work yourself."
+- **Shell rules.** "Use `rg` not grep, `fd` not find, `bat` not cat. Never use `rm`." Subagents default to POSIX tools unless told otherwise.
+- **Evidence.** "Every finding names a concrete failing case - inputs or state, and the wrong result. If you cannot construct one, mark it unverified."
+- **The report format.** Step 4 below.
+- **The verdict.** "End with `VERDICT: PASS` or `VERDICT: FAIL` against your own lens's criteria. `FAIL` only when a Critical or Warning survives - Suggestions are reported in full and never fail a review. Do not soften a Critical or Warning, or inflate a nit into one."
+
+Security, performance and readability have no lens of their own - cover them yourself in a direct pass over the diff, since they are cross-cutting and cheap: injection, hardcoded secrets, missing authn/authz, unvalidated input at a trust boundary, path traversal; N+1 queries, unbounded fetch, allocation in a hot path, accidental O(n²); naming that needs a comment to survive, a function doing several jobs, dead or commented-out code.
 
 ⚠️ Never simplify away input validation at a trust boundary, error handling that prevents data loss, security controls, or accessibility basics. A finding that removes one of those is wrong.
 
+When the review turns on how the change behaves and it is observable in a running system, reading is not enough - drive it with `/manual-qa` and fold what you find into the findings below.
+
 ## Step 4 - Present findings
 
-This format is the shared contract - the lenses and `/qa-loop` all report in it.
+Merge findings that duplicate across lenses, then present one report. Open with two or three sentences: is this change in good shape, and is anything a blocker? The review is clean only when every lens returned `PASS`. Then findings, grouped by severity:
 
-Open with two or three sentences: is this change in good shape, and is anything a blocker? Then findings, grouped by severity:
+- **Critical** - must fix before merge. Bugs with a failing case, security holes, data-loss risk, a broken build or a failing test.
+- **Warning** - should fix. Error-handling gaps, performance traps, future bugs, the change not doing what was specified, and any violation of a convention the repo actually states (an instruction file, a linter config, `.editorconfig`, the documented comment or naming rules).
+- **Suggestion** - the implementer's call, and they may decline without justifying it. Readability, naming taste, minor refactors, a shorter form of something already correct, consistency the repo has no stated rule for.
 
-- **Critical** - must fix before merge. Bugs, security holes, data-loss risk.
-- **Warning** - should fix. Error-handling gaps, performance traps, future bugs.
-- **Suggestion** - optional. Readability, minor refactors, consistency.
+**The severity is the verdict.** Every lens fails only on a surviving Critical or Warning. Suggestions are reported in full and never fail a review - a nit is a nit however many of them there are. When a finding could sit in either bucket, the deciding question is whether something outside your own taste says it is wrong: a failing case, a spec, or a rule written down in the repo. If nothing does, it is a Suggestion.
 
 Each finding carries:
 

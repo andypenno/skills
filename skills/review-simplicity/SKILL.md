@@ -1,17 +1,17 @@
 ---
 name: review-simplicity
 description: |-
-  Trigger when the question is whether code should exist at all - what can be deleted, over-engineering, over-abstraction, bloat, boilerplate, or a change bigger than its problem. Also when reviewing LLM-written code, where speculative abstraction is the default failure, and when auditing a whole repo for bloat rather than a diff. One of /qa-loop's lenses.
+  Trigger when the question is whether code should exist at all - what can be deleted, over-engineering, over-abstraction, bloat, boilerplate, or a change bigger than its problem. Also when reviewing LLM-written code, where speculative abstraction is the default failure, and when auditing a whole repo for bloat rather than a diff.
   Keywords: over-engineered, over-abstracted, what can we delete, simplify, too complex, bloat, boilerplate, YAGNI, unnecessary abstraction, duplication, dead code, audit for bloat, what can I delete from this repo
 ---
 
 # Review - Simplicity
 
-Hunts code that shouldn't exist. Scope, context and reporting come from `/code-review` Steps 1, 2 and 4 - read those first, then apply this lens instead of its Step 3.
+Hunts code that shouldn't exist. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full plus the repo's instruction files (`fd -H -i '^(claude|agents)(\.local)?\.md$'`) and style config.
 
-This lens deletes; it does not hunt bugs. Pair it with `/review-correctness`.
+This lens deletes; it does not hunt bugs.
 
-It is also the one lens that works with no diff at all: ask for it repo-wide (`/code-review` Step 1, last row) and it becomes an over-engineering audit, ranked biggest cut first.
+It is also the one lens that works with no diff at all: pointed at a whole tree rather than a change, it becomes an over-engineering audit, ranked biggest cut first.
 
 ## The ladder
 
@@ -63,7 +63,7 @@ These are never findings. Do not propose removing them:
 
 ## Reporting
 
-Use `/code-review` Step 4, one line per finding, each tagged with the rung it failed:
+One line per finding, each tagged with the rung it failed:
 
 - `delete:` built for a requirement nobody stated, or dead already. Replacement: nothing.
 - `reuse:` the repo already has this. Name the existing helper, type or pattern.
@@ -79,11 +79,13 @@ Prefer a shorter diff over a cleverer one. If the honest answer is "this is abou
 
 End with one line: `VERDICT: PASS` or `VERDICT: FAIL`. This judgement is yours, not the caller's.
 
-`FAIL` if any of these hold:
+`FAIL` only on a Critical or Warning. In this lens that means:
 
-- Something added can be deleted, or replaced by what already exists in the repo, the standard library, or an installed dependency, with no behaviour change
-- An abstraction has exactly one caller or one implementation and no stated second use
-- The same logic appears twice where a shared callee is the right home
-- Dead code, commented-out code, or an unreferenced export was introduced
+- Dead code, commented-out code, or an unreferenced export was introduced (Warning)
+- The same logic was added twice where a shared callee is the obvious home (Warning)
+- A whole layer, dependency, or configuration surface was added for a requirement nobody stated (Warning)
+- A comment or naming rule the repo states, in an instruction file or a linter config, was broken (Warning)
 
-`PASS` if none hold. Nothing in **Where laziness stops** is ever a `FAIL` - proposing to remove one of those is itself the mistake.
+`PASS` otherwise, and a `PASS` may carry Suggestions. The ladder findings below Warning grade are Suggestions, and the implementer may decline them: a helper with one caller today, something the stdlib does slightly better, a block that could be three lines shorter, a `try/catch` that is merely redundant. Report every one of them, then pass.
+
+Nothing in **Where laziness stops** is ever a finding at any severity - proposing to remove one of those is itself the mistake.

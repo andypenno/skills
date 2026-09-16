@@ -1,13 +1,13 @@
 ---
 name: review-correctness
 description: |-
-  Trigger when the question is whether a change is right rather than tidy - a suspected bug, "what could break", "did we miss anything", edge cases, or the blast radius of a fix. Also after a fix to shared code, to check every affected call site and whether the same bug exists elsewhere. One of /qa-loop's lenses.
+  Trigger when the question is whether a change is right rather than tidy - a suspected bug, "what could break", "did we miss anything", edge cases, or the blast radius of a fix. Also after a fix to shared code, to check every affected call site and whether the same bug exists elsewhere.
   Keywords: correctness review, what could break, did we miss anything, edge cases, blast radius, other call sites, same bug elsewhere, regression risk
 ---
 
 # Review - Correctness
 
-Hunts wrong behaviour and unhandled states. Scope, context and reporting come from `/code-review` Steps 1, 2 and 4 - read those first, then apply this lens instead of its Step 3.
+Hunts wrong behaviour and unhandled states. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full - not just the hunks, since the caller that breaks and the sibling with the same bug live outside them - plus the repo's instruction files (`fd -H -i '^(claude|agents)(\.local)?\.md$'`) and style config.
 
 ## What to check
 
@@ -51,17 +51,18 @@ Report explicitly on: sibling callers left unfixed, the same bug pattern survivi
 
 ## Reporting
 
-Use `/code-review` Step 4. One extra requirement: every finding names a **concrete failing case** - the input or state, and the wrong output or crash. If you cannot construct one, say the finding is unverified rather than presenting a guess as a defect.
+Each finding: `path:line`, what is wrong and why, a **concrete failing case** (the input or state, and the wrong output or crash), and a fix. Group by severity - Critical and Warning must fix, a Suggestion is the implementer's call and never fails the review. If you cannot construct the failing case, say the finding is unverified rather than presenting a guess as a defect.
 
 ## Verdict
 
 End with one line: `VERDICT: PASS` or `VERDICT: FAIL`. This judgement is yours, not the caller's.
 
-`FAIL` if any of these hold:
+`FAIL` only on a Critical or Warning. These are the ones that qualify:
 
-- A confirmed defect exists - any finding with a reproducible failing case
-- A caller, config file, or sibling occurrence of the same pattern is affected and left unfixed
-- An error or failure path the change added or touched has undefined behaviour
-- You could not complete the blast-radius sweeps in this environment
+- A confirmed defect - a reproducible failing case, a broken build, or a failing test (Critical)
+- A caller or config file this change actually breaks, left unfixed (Critical). Report it even when fixing it falls outside the scope you were given, and say so
+- An error or failure path the change added or touched with undefined behaviour (Warning)
+- The change does not do what the spec, ticket or instruction file says it should (Warning)
+- A blast-radius sweep that was **relevant to this diff** and you could not run here (Warning, naming the sweep)
 
-`PASS` requires all four absent. An incomplete check is `FAIL` with the check named - never a `PASS` with a caveat.
+`PASS` otherwise, and a `PASS` may carry Suggestions. Specifically not a failure: a finding you could not construct a failing case for (report it as unverified), the same pattern surviving in code this change never touched, and a sweep that does not apply to the diff at hand - a prose or config-only change has no callers to sweep.

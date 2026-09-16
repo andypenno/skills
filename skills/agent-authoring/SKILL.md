@@ -78,7 +78,6 @@ The failure mode is not exotic vocabulary, it is padding:
 | Field | Effect |
 |---|---|
 | `name`, `description` | Required. The description carries the whole trigger decision. |
-| `disable-model-invocation: true` | User-only: the model cannot fire it. Use for expensive or destructive skills the user should choose deliberately. |
 | `user-invocable: false` | Model-only: hidden from the `/` menu. |
 | `allowed-tools` / `disallowed-tools` | Constrain the tools available while the skill runs. |
 | `model`, `effort` | Override for this skill's turn. |
@@ -95,14 +94,14 @@ A skill referenced by another skill is still a normal skill - write `/skill-name
 
 ## Verdict
 
-When invoked as a review lens by `/qa-loop`, end with one line: `VERDICT: PASS` or `VERDICT: FAIL`. This judgement is yours, not the caller's.
+When run as a review lens, end with one line: `VERDICT: PASS` or `VERDICT: FAIL`. This judgement is yours, not the caller's.
 
-`FAIL` if any of these hold in the text under review:
+`FAIL` only on a Critical or Warning. In this lens that means:
 
-- A description summarises what the skill does instead of when to trigger it, or has no keywords line
-- A rule contradicts, or silently duplicates, one already present in another instruction file in scope
-- The edit was purely additive where replacing or deleting an existing line was the correct change
-- A referenced file, path, or skill does not exist
-- Boilerplate scaffolding or padding was added: a restating opener, an Overview/Conclusion shell, or a sentence whose deletion loses nothing
+- A referenced file, path, or skill does not exist (Critical - the instruction cannot be followed)
+- A rule contradicts one already present in another instruction file in scope (Critical - the agent cannot obey both)
+- A description summarises what the skill does instead of when to trigger it, or has no keywords line (Warning - the skill will not load)
+- A rule silently duplicates one that already has a home elsewhere (Warning)
+- The edit was purely additive where replacing or deleting an existing line was the correct change (Warning)
 
-`PASS` if none hold.
+`PASS` otherwise, and a `PASS` may carry Suggestions. Padding, a restating opener, an Overview/Conclusion shell, a sentence whose deletion loses nothing, wording you would have phrased differently: report them as Suggestions and pass. Prose you dislike is not a broken instruction.

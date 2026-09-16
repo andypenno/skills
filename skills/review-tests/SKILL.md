@@ -1,13 +1,13 @@
 ---
 name: review-tests
 description: |-
-  Trigger when the concern is the tests rather than the code - whether a change is covered, whether edge cases have cases, whether existing tests still guard what they claim, or flakiness. Also after deleting code, and when the same pass wrote both code and tests. One of /qa-loop's lenses.
+  Trigger when the concern is the tests rather than the code - whether a change is covered, whether edge cases have cases, whether existing tests still guard what they claim, or flakiness. Also after deleting code, and when the same pass wrote both code and tests.
   Keywords: test review, are there enough tests, test coverage, missing tests, untested, flaky, will tests catch this, brittle tests, regression test
 ---
 
 # Review - Tests
 
-Hunts gaps and lies in the test suite around a change. Scope, context and reporting come from `/code-review` Steps 1, 2 and 4 - read those first, then apply this lens instead of its Step 3.
+Hunts gaps and lies in the test suite around a change. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full plus the repo's instruction files (`fd -H -i '^(claude|agents)(\.local)?\.md$'`) and test conventions.
 
 Judge the tests against the change. A suite with high coverage and no test for the branch just added is a failing suite.
 
@@ -54,18 +54,25 @@ for i in $(seq 1 20); do <the repo's single-test command> || echo "FAILED run $i
 
 ## Reporting
 
-Use `/code-review` Step 4. Each finding names the untested path or the false-confidence test, and the specific case that should exist. Say plainly when the tests are adequate - "more tests" is not automatically the right answer, and a test that cannot fail is worse than no test.
+One line per finding, grouped by severity: the untested path or the false-confidence test, and the specific case that should exist. Critical and Warning must fix, a Suggestion is the implementer's call and never fails the review. Say plainly when the tests are adequate - "more tests" is not automatically the right answer, and a test that cannot fail is worse than no test.
 
 ## Verdict
 
 End with one line: `VERDICT: PASS` or `VERDICT: FAIL`. This judgement is yours, not the caller's.
 
-`FAIL` if any of these hold:
+`FAIL` only on a Critical or Warning. In this lens that means:
 
-- A new or changed logic path has no test that fails when that logic is broken
-- A bug fix has no test that fails on the old code and passes on the new
-- A test in scope asserts something that cannot fail, or passes without exercising the production path
-- Behaviour changed and its existing tests did not
-- Flakiness was suspected and not measured by repeat runs
+- A test in scope is failing, or the suite does not run (Critical)
+- A new or changed logic path with real branching has no test that fails when that logic is broken (Warning)
+- A bug fix has no test that fails on the old code and passes on the new (Warning)
+- A test in scope asserts something that cannot fail, or passes without exercising the production path (Warning)
+- Behaviour changed and its existing tests did not (Warning)
+- Measured flakiness - you ran it repeatedly and it failed some of the runs (Warning)
 
-`PASS` if none hold. Coverage percentages are not evidence; a named failing case for each new branch is.
+`PASS` otherwise, and a `PASS` may carry Suggestions. Three cases that are **not** failures, however thin the coverage looks:
+
+- The repo has no test harness for this kind of code, or the behaviour is not observable from a test here. Say so, propose where a suite would start, and pass. Inventing the repo's first test framework is not this lens's call.
+- A change with no logic to break: prose, comments, a constant, a one-line pass-through. The repo's own laziness rules say a one-liner needs no test, and this lens does not overrule them.
+- Flakiness you suspect but did not measure. That is a Suggestion naming the suspect test and the command to prove it.
+
+Coverage percentages are not evidence; a named failing case for each new branch is.
