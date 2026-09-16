@@ -80,7 +80,7 @@ Each finding carries:
 3. A concrete failure scenario - inputs or state that produce the wrong result. A finding you cannot make fail is a guess; label it as one or drop it.
 4. A concrete fix
 
-Posting the report to a PR or MR is outward-facing: never post on your own initiative, and never without the user's approval. Once they approve, post through `/mr-comments`, which owns the propose-before-send flow and the host-specific commands. Every comment opens with a first line that identifies it as agent-authored and names the agent - the interaction style's opener with an explicit agent attribution appended, e.g. a trailing `@ Claude`, when the instruction files define a style, else a plain marker naming the agent, e.g. `🤖 Drafted by Claude Code.`
+Posting the report to a PR or MR is outward-facing: never post on your own initiative, and never without the user's approval. Once they approve, post through `/mr-comments`, which owns the propose-before-send flow and the host-specific commands. Post each finding as its own comment, inline at its line where it has one, never a single comment listing them all. Never expose its severity: Critical, Warning and Suggestion are for this report, not the author - state the issue and let them judge how much it matters. Every comment's first line ends in a consistent agent signature, ` ~ <agent> 🤖` (e.g. `~ Claude 🤖`); it is the interaction style's opener followed by the signature when the instruction files define a style, otherwise a short summary of the comment followed by the signature.
 
 ## Guidelines
 
