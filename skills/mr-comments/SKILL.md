@@ -67,6 +67,31 @@ Then, before editing: list each comment, your reading of what it asks, and what 
 
 A posted comment shows under the user's account, so readers know whose it is but not that an agent wrote it. Open every comment you draft - thread reply, new inline comment, non-blocking note, re-request - with a first line that ends in a consistent agent signature, ` ~ <agent> 🤖` (e.g. `~ Claude 🤖`). When the instruction files define an interaction style, that first line is its opener followed by the signature; with none defined, it is a short summary of the comment followed by the signature. A reader must be able to tell an agent wrote it, and which one. The line is part of the body, so it goes to the user for approval with the rest. The body below it is prose you are publishing - apply the writing conventions the instruction files set, straight quotes and no em or en dashes included, even to a draft already approved. Keep every comment concise: the issue and a suggested fix, no essays.
 
+## Posting a review as one batch
+
+Submit a whole review in one call so the agent's comments land together and stay distinct from human threads, rather than scattered as separate top-level comments. Each finding is still its own inline comment, one entry per issue - batching is how they are submitted, not a merge into one blob.
+
+**GitHub** uses the `reviews` endpoint with every inline comment in a `comments[]` array: one review, one summary body. Do **not** loop `pulls/N/comments` (the single-comment row below) - each of those posts as its own top-level review and fragments the thread list.
+
+```bash
+gh api repos/OWNER/REPO/pulls/N --jq .head.sha    # commit_id for the payload
+cat > review.json <<'JSON'
+{"commit_id":"<HEAD_SHA>","event":"COMMENT","body":"Review summary.",
+ "comments":[{"path":"src/ux/commands.ts","line":168,"side":"RIGHT","body":"First inline comment."},
+             {"path":"src/auth/index.ts","line":84,"side":"RIGHT","body":"Second inline comment."}]}
+JSON
+gh api repos/OWNER/REPO/pulls/N/reviews --method POST --input review.json
+```
+
+`event` is `COMMENT`, `APPROVE`, or `REQUEST_CHANGES`. A multi-line comment swaps `line` for `start_line` + `line` (with `start_side`/`side`). Bodies stay individually addressable afterwards:
+
+```bash
+gh api -X PATCH repos/OWNER/REPO/pulls/comments/COMMENT_ID -F body=@body.txt   # one inline comment
+gh api -X PUT   repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID  -F body=@body.txt   # the review summary
+```
+
+**GitLab** has no single review object; its batched form is draft notes - create each with `.../merge_requests/N/draft_notes` (same nested `position` as the discussion recipe below), then publish them together with `.../merge_requests/N/draft_notes/bulk_publish`. Per-discussion posting in the table below is the fallback when a draft batch is not worth it.
+
 ## Replying and resolving
 
 | | GitHub | GitLab |
