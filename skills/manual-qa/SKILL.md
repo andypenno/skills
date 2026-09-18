@@ -23,8 +23,10 @@ Bring up the smallest real surface that exercises the change: the CLI command, t
 - **The happy path**, end to end.
 - **The edges you would worry about.** Empty, missing, malformed, large, repeated, cancelled midway - the states the change newly touches. A few pointed cases beat a long checklist.
 - **What it might have broken.** The adjacent behaviour that shared the code you changed.
+- **Don't stop at the first failure.** One pass surfaces every finding; note the bug and keep going.
+- **Cover every surface the change spans.** A change across several tools, commands or screens is not QA'd by exercising one; hit each.
 
-Record the command, the input, and the actual output - not a summary of intent.
+Record the command, the input, the actual output, and the logs it produced - not a summary of intent. A call that returns success while logging an error is a finding.
 
 ## Step 4 - Report
 
