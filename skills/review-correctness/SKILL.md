@@ -7,7 +7,7 @@ description: |-
 
 # Review - Correctness
 
-Hunts wrong behaviour and unhandled states. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full - not just the hunks, since the caller that breaks and the sibling with the same bug live outside them - plus the repo's instruction files (`fd -H -i '^(claude|agents)(\.local)?\.md$'`) and style config.
+Hunts wrong behaviour and unhandled states. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full - not just the hunks, since the caller that breaks and the sibling with the same bug live outside them - plus the repo's instruction files (`fd -HI -E node_modules -E worktrees -i '^(claude|agents)(\.local)?\.md$'`) and style config.
 
 ## What to check
 

@@ -25,6 +25,7 @@ There is no "dependency" pattern. A skill invoked by another skill is a normal s
 - Lowercase kebab-case, matching the directory name.
 - Family prefix when skills share a shape: `review-correctness`, `review-simplicity`, `review-tests`. They sort together and read as a set.
 - Name the job, not the implementation.
+- Clear of Claude Code's built-in commands **and their aliases**. The built-in `/code-review` also answers to `/review`, and a collision shadows the skill.
 
 ## Descriptions
 
@@ -41,13 +42,13 @@ The description is the entire basis for the model's load decision. Spending it o
 
 ## Shared contracts
 
-Don't restate a procedure two skills need. `code-review` owns scope resolution, full-context reading, and the findings format; the review lenses say "read `/code-review` Steps 1, 2 and 4" and supply only their own checklist. One home per fact.
+Don't restate a procedure two skills need. `agent-authoring` owns the general rules for any spawn prompt. `review-full` owns scope resolution, the literal text of a lens prompt and the merged report, and hands each lens only its scope (and `/manual-qa` the ticket or failing case it must reproduce). Each lens owns its checklist, its reporting format and its verdict criteria. `mr-comments` owns everything about a posted comment, so `review-full` states eligibility and defers the rest. One home per fact.
 
 ## Cost ceilings
 
 Skills are loaded and re-loaded. Two ceilings are deliberate and should not drift:
 
-- **Three review lenses.** `qa-loop` spawns one full-context subagent per lens. A fourth (`agent-authoring`) is conditional on the diff touching agent-facing text. Adding a permanent fourth lens needs a reason better than completeness.
+- **Three reading lenses.** `review-full` spawns one full-context subagent per lens, on every call and in every `qa-loop` round. Two more are conditional: `agent-authoring` when the diff touches agent-facing text, and `manual-qa` when the change has runtime behaviour, which runs the change rather than reading it. Adding a permanent fourth reading lens needs a reason better than completeness.
 - **Body length.** If a `SKILL.md` needs long references, templates, or examples, they go in sibling files the skill points at, not in the body.
 
 ## Bundled files
@@ -60,6 +61,7 @@ Scripts must run on bash 3.2 (macOS ships it - no `declare -A`) and use only wid
 
 ```sh
 claude plugin validate .
+bash skills/reflect/extract-corpus.test.sh
 ```
 
 Then re-read the rendered `SKILL.md` top to bottom, and check the description fires on the phrasings you actually use and stays quiet on its neighbours.

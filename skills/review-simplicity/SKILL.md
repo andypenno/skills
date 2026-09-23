@@ -7,13 +7,13 @@ description: |-
 
 # Review - Simplicity
 
-Hunts code that shouldn't exist. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full plus the repo's instruction files (`fd -H -i '^(claude|agents)(\.local)?\.md$'`) and style config.
+Hunts code that shouldn't exist. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full plus the repo's instruction files (`fd -HI -E node_modules -E worktrees -i '^(claude|agents)(\.local)?\.md$'`) and style config.
 
 Judge only against conventions the reviewed repo states in those files. Rules from your own operating context, like a personal global config, are not the repo's - suggest one if you like, but it is not a finding against someone else's code.
 
 This lens deletes; it does not hunt bugs.
 
-It is also the one lens that works with no diff at all: pointed at a whole tree rather than a change, it becomes an over-engineering audit, ranked biggest cut first.
+It also works with no diff at all: pointed at a whole tree rather than a change, it becomes an over-engineering audit, ranked biggest cut first.
 
 ## The ladder
 

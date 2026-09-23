@@ -50,11 +50,12 @@ Grouped by domain. Every skill is discoverable and user-invocable; the pattern c
 
 | Skill | Fires when | Pattern |
 |---|---|---|
-| `code-review` | A review is asked for without a named lens. The shared scope/context/reporting contract the lenses reuse. | auto |
+| `review-full` | A review is asked for without a named lens. Resolves the scope, spawns the lenses and merges their reports. | auto |
 | `review-correctness` | The question is whether the change is *right* - bugs, edge cases, blast radius. | auto |
 | `review-simplicity` | The question is whether the code should exist - over-engineering, duplication, dead flexibility. | auto |
 | `review-tests` | The question is the test suite - coverage of the change, false confidence, flakiness. | auto |
-| `qa-loop` | Independent subagent reviewers, round-based until every lens returns PASS. | user only |
+| `manual-qa` | A change needs confirming by running it rather than reading it. | auto |
+| `qa-loop` | Independent subagent reviewers, round-based until every lens returns PASS. | usually user |
 | `changelog` | What changed between two points in git history needs writing up. | auto |
 | `hooks` | Authoring or debugging a verification hook - git pre-commit/pre-push, or a Claude Stop hook. | auto |
 | `secret-hygiene` | A credential may be in the tree, the history, or a log; or a repo is about to go public. | auto |
@@ -65,23 +66,23 @@ Grouped by domain. Every skill is discoverable and user-invocable; the pattern c
 |---|---|---|
 | `triage` | Something that worked has broken and the question is when and why. | auto |
 | `measure` | Before any benchmark, profile or leak hunt, and for any before/after comparison. | auto |
-| `watch-mr` | An open PR/MR needs following over time until it is mergeable. Owns the merge-readiness gate. | user only |
+| `watch-mr` | An open PR/MR needs following over time until it is mergeable. Owns the merge-readiness gate. | usually user |
 | `mr-comments` | Review feedback needs reading or acting on; unresolved threads. | auto |
-| `watch-ci` | CI on a PR or MR needs following to a conclusion. GitHub and GitLab, incl. self-hosted. | user only |
+| `watch-ci` | CI on a PR or MR needs following to a conclusion. GitHub and GitLab, incl. self-hosted. | usually user |
 
 ### Authoring
 
 | Skill | Fires when | Pattern |
 |---|---|---|
 | `agent-authoring` | Writing or editing text an agent reads - `SKILL.md`, `CLAUDE.md`, `AGENTS.md`, tool descriptions, subagent prompts. | auto |
-| `docs-audit` | Docs need checking rather than writing - stale claims, or written for the wrong reader. | user only |
+| `docs-audit` | Docs need checking rather than writing - stale claims, or written for the wrong reader. | usually user |
 | `html` | Conversation content needs to leave as one self-contained shareable `.html` file. | auto |
 
 ### Handover
 
 | Skill | Fires when | Pattern |
 |---|---|---|
-| `handoff` | Your own work continues in another session or by another agent. | user only |
+| `handoff` | Your own work continues in another session or by another agent. | usually user |
 | `agent-brief` | An agent owning a different system needs a contract block carried to it. | auto |
 
 ### Personal
@@ -96,12 +97,12 @@ Grouped by domain. Every skill is discoverable and user-invocable; the pattern c
 ```
 .claude-plugin/
 ├── marketplace.json    # marketplace: andypenno
-└── plugin.json         # plugin: skills — the plugin root IS the repo root
+└── plugin.json         # plugin: skills, and the plugin root IS the repo root
 skills/<name>/SKILL.md  # flat, one directory per skill
 docs/AUTHORING.md       # conventions for adding a skill
 ```
 
-The plugin root is the repo root, so top-level `skills/` is both Claude Code's default scan path and the flat layout other tooling expects — no `skills` field in `plugin.json`, and therefore no minimum Claude Code version. Skills sit flat: declared subdirectories are not scanned recursively, so domain grouping stays in this README as a reading aid, not a path.
+The plugin root is the repo root, so top-level `skills/` is both Claude Code's default scan path and the flat layout other tooling expects. That leaves no `skills` field in `plugin.json`, and no minimum Claude Code version. Skills sit flat: declared subdirectories are not scanned recursively, so domain grouping stays in this README as a reading aid, not a path.
 
 ## Adding a skill
 

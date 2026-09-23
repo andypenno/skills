@@ -7,9 +7,9 @@ description: |-
 
 # Review - Tests
 
-Hunts gaps and lies in the test suite around a change. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full plus the repo's instruction files (`fd -H -i '^(claude|agents)(\.local)?\.md$'`) and test conventions.
+Hunts gaps and lies in the test suite around a change. Work from the diff or files in scope, asking if it is unclear what to review. Read each in full plus the repo's instruction files (`fd -HI -E node_modules -E worktrees -i '^(claude|agents)(\.local)?\.md$'`) and test conventions.
 
-Judge the tests against the change. A suite with high coverage and no test for the branch just added is a failing suite.
+Judge the tests against the change. A suite with high coverage and no test for the branch just added is a failing suite. Pointed at a whole tree with no change, judge only test quality and flakiness; coverage of a change needs a diff.
 
 ## Coverage of this change
 
@@ -68,6 +68,7 @@ End with one line: `VERDICT: PASS` or `VERDICT: FAIL`. This judgement is yours, 
 - A test in scope asserts something that cannot fail, or passes without exercising the production path (Warning)
 - Behaviour changed and its existing tests did not (Warning)
 - Measured flakiness - you ran it repeatedly and it failed some of the runs (Warning)
+- A test convention the repo states in an instruction file or linter config was broken (Warning)
 
 `PASS` otherwise, and a `PASS` may carry Suggestions. Three cases that are **not** failures, however thin the coverage looks:
 

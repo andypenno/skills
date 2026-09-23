@@ -1,7 +1,7 @@
 ---
 name: changelog
 description: |-
-  Trigger when the user wants what changed between two points in git history written up - changelog, release notes, commits since a tag or deploy, a commit range for an MR or ticket. Not for judging a diff's quality (/code-review).
+  Trigger when the user wants what changed between two points in git history written up - changelog, release notes, commits since a tag or deploy, a commit range for an MR or ticket. Not for judging a diff's quality (/review-full).
   Keywords: changelog, release notes, what changed, changes since, commits between, CHANGELOG.md, since last tag
 ---
 
