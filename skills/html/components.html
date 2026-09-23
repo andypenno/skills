@@ -17,29 +17,44 @@
     --green-rgb:63,185,80; --amber-rgb:210,153,34; --red-rgb:248,81,73; --accent-rgb:88,166,255;
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --serif: ui-serif, "New York", "Iowan Old Style", Georgia, Cambria, "Times New Roman", serif;
   }
   [data-theme="light"] {
     color-scheme: light;
     --bg:#fff; --panel:#f6f8fa; --panel2:#eef1f5; --border:#d0d7de;
     --text:#1f2328; --muted:#656d76; --accent:#0969da;
-    --green:#1a7f37; --amber:#9a6700; --red:#cf222e; --code-bg:#f6f8fa; --chip:#eaeef2;
-    --green-rgb:26,127,55; --amber-rgb:154,103,0; --red-rgb:207,34,46; --accent-rgb:9,105,218;
+    --green:#197a35; --amber:#8a5c00; --red:#cf222e; --code-bg:#f6f8fa; --chip:#eaeef2;
+    --green-rgb:25,122,53; --amber-rgb:138,92,0; --red-rgb:207,34,46; --accent-rgb:9,105,218;
   }
+  /* ---- Accent: the per-document choice, set as data-accent on <html>. Blue is the default above.
+     Each hue is a contrast-checked dark/light pair; a dark hue on the light theme fails AA. ---- */
+  [data-accent="violet"]  { --accent: #a371f7; --accent-rgb: 163,113,247; }
+  [data-accent="teal"]    { --accent: #39c5cf; --accent-rgb: 57,197,207; }
+  [data-accent="magenta"] { --accent: #db61a2; --accent-rgb: 219,97,162; }
+  [data-accent="orange"]  { --accent: #e3853d; --accent-rgb: 227,133,61; }
+  [data-theme="light"][data-accent="violet"]  { --accent: #7f4edb; --accent-rgb: 127,78,219; }
+  [data-theme="light"][data-accent="teal"]    { --accent: #0e7490; --accent-rgb: 14,116,144; }
+  [data-theme="light"][data-accent="magenta"] { --accent: #bb3886; --accent-rgb: 187,56,134; }
+  [data-theme="light"][data-accent="orange"]  { --accent: #b84a00; --accent-rgb: 184,74,0; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); line-height:1.6; }
-  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
   h1 { font-size:1.9rem; border-bottom:2px solid var(--border); padding-bottom:.4em; }
-  h2 { font-size:1.3rem; margin-top:2.4em; border-bottom:1px solid var(--border); padding-bottom:.3em; }
+  h2 { font-size: 1.35rem; margin-top: 2.2em; border-bottom: 1px solid var(--border); padding-bottom: .3em;
+       display: flex; flex-wrap: wrap; align-items: center; gap: .5em; }
   p.lead { color:var(--muted); }
+  p.lead code { color: var(--text); }
   a { color: var(--accent); }
-  code { font-family:var(--mono); background:var(--chip); padding:.12em .4em; border-radius:4px; font-size:.86em; }
-  pre { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:12px 14px; overflow-x:auto; }
-  pre code { background:none; padding:0; font-size:.78rem; line-height:1.5; }
-  table { border-collapse:collapse; width:100%; margin:1em 0; font-size:.9rem; }
-  th, td { border:1px solid var(--border); padding:8px 12px; text-align:left; vertical-align:top; }
-  th { background:var(--panel); }
+  code { font-family: var(--mono); background: var(--chip); padding: .12em .4em;
+    border-radius: 4px; font-size: .86em; }
+  pre { position: relative; background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; overflow-x: auto; }
+  pre code { background: none; padding: 0; font-size: .82rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: .9rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
   /* gallery demo wrapper: rendered example above, code below */
-  .demo { border:1px solid var(--border); border-radius:10px; padding:18px; margin:1em 0; background:var(--panel); }
+  .demo { border:1px solid var(--border); border-radius:10px; padding:18px; margin:1em 0; background:var(--bg); }
   .demo > .render { margin-bottom:14px; }
   .demo > pre { margin:0; background:var(--code-bg); }
   .theme-toggle { position:fixed; top:16px; right:16px; font:600 12px/1 var(--mono);
@@ -47,30 +62,67 @@
     border-radius:999px; padding:8px 12px; cursor:pointer; z-index:10; }
 
   /* ---- components: kept byte-for-byte in sync with template.html (the asset that ships) ---- */
+  /* ---- Heading treatments: pick ONE per document, as a class on .wrap ---- */
+  /* h-plain = the ruled h2 above (default) · h-num numbers every h2 · h-band tints it */
+  .h-num { counter-reset: h2n; }
+  .h-num h2::before { counter-increment: h2n; content: counter(h2n); font: 700 .8rem/1 var(--mono);
+    color: var(--bg); background: var(--accent); width: 26px; height: 26px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .h-band h2 { border-bottom: none; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    background: linear-gradient(90deg, rgba(var(--accent-rgb),.16), transparent 72%);
+    padding: .35em .7em; margin-top: 2em; }
+
+  /* ---- Title treatments, also on .wrap: t-plain = the ruled h1 above (default) · t-hero = below ---- */
+  /* the tint stops at 50% so the meta line and legend below the h1 keep AA contrast */
+  .t-hero .top { background: linear-gradient(180deg, rgba(var(--accent-rgb),.14), rgba(var(--accent-rgb),0) 50%), var(--panel);
+    border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 14px;
+    padding: 28px 28px 16px; margin-bottom: 1.6em; }
+  .t-hero .top h1 { border-bottom: none; padding-bottom: 0; font-size: 2.3rem; line-height: 1.15; }
+
+  /* ---- Type, also on .wrap: f-sans (default) · f-serif sets headings in the system serif ---- */
+  .f-serif h1, .f-serif h2, .f-serif h3 { font-family: var(--serif); letter-spacing: -.01em; }
+  .f-serif h2 { font-size: 1.5rem; font-weight: 600; }
+
+  /* magnitude under a cell's number - shape without a chart: <td>1.8 GB<span class="m" style="--pct:72%"></span></td> */
+  td .m { display: block; height: 4px; width: var(--pct,0%); margin-top: 5px;
+    border-radius: 999px; background: rgba(var(--accent-rgb),.55); }
+
+  /* ---- Stat tiles: the number leads, prose follows ---- */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin: 1.2em 0; }
+  .kpi { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .kpi .k { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .kpi .v { display: block; font: 700 1.7rem/1.1 var(--mono); }
+  .kpi .d { display: block; font-size: .78rem; color: var(--muted); margin-top: 6px; }
+  /* .good/.bad name the outcome, not the direction: a 38% memory drop is .good. Pair with ✅/❌ */
+  .kpi.hi .v { color: var(--accent); } .kpi.good .v { color: var(--green); } .kpi.bad .v { color: var(--red); }
+
   /* ---- Inline helpers ---- */
   .meta { color: var(--muted); font-size: .85rem; }
+  .meta code, .legend code { color: var(--text); }   /* muted on --chip is just under AA in light */
   .file { font-family: var(--mono); font-size: .82rem; color: var(--green); overflow-wrap: anywhere; }
   .mono { font-family: var(--mono); color: var(--accent); }
   .ok { color: var(--green); } .no { color: var(--red); }
   .legend { color: var(--muted); }
-  .legend span { margin-right: 1.5em; font-size: .85rem; white-space: nowrap; }
+  .legend > span { margin-right: 1.5em; font-size: .85rem; white-space: nowrap; }
   .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px;
     margin-right: 5px; vertical-align: middle; }
 
   /* ---- Tags / status pills ---- */
   .tag { display: inline-block; font-size: .72rem; font-weight: 600; padding: .15em .6em;
     border-radius: 999px; vertical-align: middle; margin-left: .4em; }
-  .tag.now, .tag.done, .tag.ok   { background: rgba(var(--green-rgb),.15); color: var(--green); border: 1px solid rgba(var(--green-rgb),.4); }
-  .tag.gated, .tag.todo, .tag.warn { background: rgba(var(--amber-rgb),.15); color: var(--amber); border: 1px solid rgba(var(--amber-rgb),.4); }
-  .tag.bug, .tag.risk            { background: rgba(var(--red-rgb),.15);   color: var(--red);   border: 1px solid rgba(var(--red-rgb),.4); }
-  .tag.scope, .tag.info          { background: rgba(var(--accent-rgb),.15); color: var(--accent); border: 1px solid rgba(var(--accent-rgb),.4); }
+  /* text on its own tint is pulled 30% toward --text: the pure hue fails AA on a 15% fill of itself */
+  .tag.now, .tag.done, .tag.ok   { background: rgba(var(--green-rgb),.15); color: color-mix(in srgb, var(--green) 70%, var(--text)); border: 1px solid rgba(var(--green-rgb),.4); }
+  .tag.gated, .tag.todo, .tag.warn { background: rgba(var(--amber-rgb),.15); color: color-mix(in srgb, var(--amber) 70%, var(--text)); border: 1px solid rgba(var(--amber-rgb),.4); }
+  .tag.bug, .tag.risk            { background: rgba(var(--red-rgb),.15);   color: color-mix(in srgb, var(--red) 70%, var(--text));   border: 1px solid rgba(var(--red-rgb),.4); }
+  .tag.scope, .tag.info          { background: rgba(var(--accent-rgb),.15); color: color-mix(in srgb, var(--accent) 70%, var(--text)); border: 1px solid rgba(var(--accent-rgb),.4); }
 
   /* ---- Callouts ---- */
   .callout { border-left: 4px solid var(--accent); background: var(--panel);
     padding: 12px 18px; border-radius: 0 8px 8px 0; margin: 1.2em 0; }
   .callout.warn { border-left-color: var(--amber); }
   .callout.risk { border-left-color: var(--red); }
-  .callout.ok   { border-left-color: var(--green); }
+  .callout.ok   { border-left-color: var(--green); color: var(--text); }   /* not the inline .ok green */
   .callout .h { font-weight: 700; font-size: .8rem; font-family: var(--mono);
     letter-spacing: .04em; text-transform: uppercase; margin-bottom: .3em; color: var(--accent); }
   .callout.warn .h { color: var(--amber); } .callout.risk .h { color: var(--red); } .callout.ok .h { color: var(--green); }
@@ -128,14 +180,14 @@
   .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1em 0; }
   .col { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
   .col .hd { padding: 6px 12px; font-weight: 600; font-size: .78rem; border-bottom: 1px solid var(--border); background: var(--panel); }
-  .col.a .hd { background: rgba(var(--amber-rgb),.12); color: var(--amber); }
-  .col.b .hd { background: rgba(var(--accent-rgb),.12); color: var(--accent); }
+  .col.a .hd { background: rgba(var(--amber-rgb),.12); color: color-mix(in srgb, var(--amber) 70%, var(--text)); }
+  .col.b .hd { background: rgba(var(--accent-rgb),.12); color: color-mix(in srgb, var(--accent) 70%, var(--text)); }
   .col pre { border: 0; border-radius: 0; margin: 0; font-size: .72rem; }
   .diff { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 1em 0; }
   .diff-hd { background: var(--panel); padding: 6px 14px; font-weight: 600; font-size: .8rem; border-bottom: 1px solid var(--border); }
   .diff pre { border: 0; border-radius: 0; margin: 0; }
-  .del { background: rgba(var(--red-rgb),.12);   color: var(--red);   display: block; }
-  .add { background: rgba(var(--green-rgb),.12); color: var(--green); display: block; }
+  .del { background: rgba(var(--red-rgb),.12);   color: color-mix(in srgb, var(--red) 70%, var(--text));   display: block; }
+  .add { background: rgba(var(--green-rgb),.12); color: color-mix(in srgb, var(--green) 70%, var(--text)); display: block; }
   .ctx { color: var(--muted); display: block; }
 
   /* ---- charts (opt-in) ---- */
@@ -153,12 +205,36 @@
   .pb-fill { display:block; height:100%; width:var(--pct); background:currentColor; color:var(--green); transition:width .6s ease; }
   .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 
-  @media (max-width:720px) { .grid2,.cols{grid-template-columns:1fr;} .flow{flex-direction:column;} .arrow{transform:rotate(90deg);} table{display:block;overflow-x:auto;} }
+  /* ---- Mobile reflow ---- */
+  @media (max-width: 720px) {
+    .grid2, .cols { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; }
+    .arrow { transform: rotate(90deg); }
+    table { display: block; overflow-x: auto; }  /* wide matrices scroll in place instead of stretching the page */
+    .wrap { padding: 24px 16px 60px; }
+    .top h1 { padding-right: 84px; }   /* clear the theme toggle */
+    .theme-toggle { position: absolute; }   /* stays in the title corner instead of riding over the text */
+  }
   @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none!important; transition:none!important; } }
+
+  /* ---- Print: force light, expand everything, drop chrome ---- */
+  @media print {
+    :root, [data-theme][data-accent] { color-scheme: light;
+      --bg: #fff; --panel: #fff; --panel2: #fff; --border: #999; --text: #000;
+      --muted: #444; --code-bg: #f4f4f4; --chip: #eee;
+      --accent: #0969da; --green: #1a7f37; --amber: #9a6700; --red: #cf222e;
+      --accent-rgb: 9,105,218; --green-rgb: 26,127,55; --amber-rgb: 154,103,0; --red-rgb: 207,34,46; }
+    .theme-toggle, #toc, .copy-btn { display: none !important; }
+    details { border: 1px solid #999; }
+    details > summary::before { display: none; }
+    details::details-content { height: auto !important; content-visibility: visible !important; }  /* expand even with JS off */
+    pre, .tree, table, .callout, .kpi { break-inside: avoid; }
+    a { color: #000; text-decoration: underline; }
+  }
 </style>
 </head>
 <body>
-<button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">◑ theme</button>
+<button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" hidden>◑ theme</button>
 <div class="wrap">
 
 <h1>Component gallery</h1>
@@ -176,7 +252,7 @@
 <pre><code>&lt;span class="tag now"&gt;NOW&lt;/span&gt;      &lt;!-- green: now/done/ok --&gt;
 &lt;span class="tag gated"&gt;GATED&lt;/span&gt;  &lt;!-- amber: gated/todo/warn --&gt;
 &lt;span class="tag bug"&gt;BUG&lt;/span&gt;      &lt;!-- red: bug/risk --&gt;
-&lt;span class="tag scope"&gt;SCOPE&lt;/span&gt;  &lt;!-- blue: scope/info --&gt;</code></pre>
+&lt;span class="tag scope"&gt;SCOPE&lt;/span&gt;  &lt;!-- accent: scope/info --&gt;</code></pre>
 </div>
 
 <h2>Callouts</h2>
@@ -206,6 +282,21 @@
 &lt;/details&gt;</code></pre>
 </div>
 
+<h2>Stat tiles - the number leads</h2>
+<div class="demo">
+  <div class="render">
+    <div class="kpis">
+      <div class="kpi hi"><span class="k">peak rss</span><span class="v">1.8 GB</span><span class="d">scenario C, run 3</span></div>
+      <div class="kpi"><span class="k">median</span><span class="v">412 MB</span><span class="d">across 40 runs</span></div>
+      <div class="kpi good"><span class="k">vs baseline</span><span class="v">-38% ✅</span><span class="d">was 664 MB</span></div>
+    </div>
+  </div>
+<pre><code>&lt;div class="kpis"&gt;
+  &lt;div class="kpi hi"&gt;&lt;span class="k"&gt;peak rss&lt;/span&gt;&lt;span class="v"&gt;1.8 GB&lt;/span&gt;
+    &lt;span class="d"&gt;scenario C, run 3&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;   &lt;!-- .hi accent · .good green · .bad red, by outcome not direction --&gt;</code></pre>
+</div>
+
 <h2>Tables</h2>
 <div class="demo">
   <div class="render">
@@ -219,6 +310,52 @@
   &lt;tr&gt;&lt;th&gt;Layer&lt;/th&gt;&lt;th&gt;File&lt;/th&gt;&lt;th&gt;Coverage&lt;/th&gt;&lt;/tr&gt;
   &lt;tr&gt;&lt;td&gt;Unit&lt;/td&gt;&lt;td class="file"&gt;tests/unit/...&lt;/td&gt;&lt;td&gt;Asserts X.&lt;/td&gt;&lt;/tr&gt;
 &lt;/table&gt;</code></pre>
+</div>
+
+<h2>Magnitude in a table cell</h2>
+<div class="demo">
+  <div class="render">
+    <table>
+      <tr><th>Scenario</th><th>min</th><th>actual</th><th>peak</th></tr>
+      <tr><td>A</td><td>96 MB<span class="m" style="--pct:12%"></span></td><td>210 MB<span class="m" style="--pct:26%"></span></td><td>340 MB<span class="m" style="--pct:42%"></span></td></tr>
+      <tr><td>C</td><td>180 MB<span class="m" style="--pct:22%"></span></td><td>960 MB<span class="m" style="--pct:53%"></span></td><td>1.8 GB<span class="m" style="--pct:100%"></span></td></tr>
+    </table>
+  </div>
+<pre><code>&lt;!-- one 4px rule per cell instead of a stack of full-width bar rows; --pct is a share of the column's maximum --&gt;
+&lt;table&gt;&lt;tr&gt;&lt;th&gt;Scenario&lt;/th&gt;&lt;th&gt;peak&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;C&lt;/td&gt;&lt;td&gt;1.8 GB&lt;span class="m" style="--pct:100%"&gt;&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code></pre>
+</div>
+
+<h2>The look - accent, headings, title, type</h2>
+<p class="lead">Accent is <code>data-accent</code> on <code>&lt;html&gt;</code>; the other three are classes on <code>.wrap</code>.
+   With the lead display these are the five slots SKILL.md §1 has you vary per document.</p>
+<div class="demo">
+  <div class="render">
+    <p class="legend">
+      <span><span class="sw" data-theme="dark" data-accent="blue" style="background:var(--accent)"></span><span class="sw" data-theme="light" data-accent="blue" style="background:var(--accent)"></span>blue</span>
+      <span><span class="sw" data-theme="dark" data-accent="violet" style="background:var(--accent)"></span><span class="sw" data-theme="light" data-accent="violet" style="background:var(--accent)"></span>violet</span>
+      <span><span class="sw" data-theme="dark" data-accent="teal" style="background:var(--accent)"></span><span class="sw" data-theme="light" data-accent="teal" style="background:var(--accent)"></span>teal</span>
+      <span><span class="sw" data-theme="dark" data-accent="magenta" style="background:var(--accent)"></span><span class="sw" data-theme="light" data-accent="magenta" style="background:var(--accent)"></span>magenta</span>
+      <span><span class="sw" data-theme="dark" data-accent="orange" style="background:var(--accent)"></span><span class="sw" data-theme="light" data-accent="orange" style="background:var(--accent)"></span>orange</span>
+    </p>
+    <p class="meta">Each accent: its dark-theme hue, then its light-theme hue. The CSS switches them with the theme.</p>
+  </div>
+<pre><code>&lt;html lang="en" data-theme="dark" data-accent="teal"&gt;   &lt;!-- blue | violet | teal | magenta | orange --&gt;</code></pre>
+</div>
+<div class="demo">
+  <div class="render">
+    <div class="t-hero f-serif" style="margin:0">
+      <header class="top"><h1 style="margin:0">Hero title, serif type</h1>
+        <p class="meta" style="margin:.4em 0 0">Project · Area · Driver</p></header>
+    </div>
+    <div class="h-band" style="margin:0"><h2 style="margin-top:.4em">Banded section header</h2></div>
+    <div class="h-num" style="margin:0"><h2 style="margin-top:.4em">Numbered section header</h2></div>
+    <p class="meta">h-plain keeps the ruled header. h-num numbers every h2 by itself. h-band tints. t-plain keeps the ruled title; t-hero boxes it in an accent wash. f-serif moves headings to the system serif.</p>
+  </div>
+<pre><code>&lt;div class="wrap h-band t-hero f-serif"&gt;   &lt;!-- h-plain|h-num|h-band · t-plain|t-hero · f-sans|f-serif --&gt;
+  &lt;header class="top"&gt;&lt;h1&gt;Subject&lt;/h1&gt;&lt;p class="meta"&gt;…&lt;/p&gt;&lt;/header&gt;
+  &lt;h2&gt;Plain markup; the class on .wrap does the rest&lt;/h2&gt;
+&lt;/div&gt;</code></pre>
 </div>
 
 <h2>Numbered steps</h2>
@@ -279,17 +416,13 @@
       <div class="col a"><div class="hd">Variant A</div><pre>old value</pre></div>
       <div class="col b"><div class="hd">Variant B</div><pre>new value</pre></div>
     </div>
-    <div class="diff"><div class="diff-hd">Differences</div><pre><span class="ctx"> shared line</span>
-<span class="del">- removed</span>
-<span class="add">+ added</span></pre></div>
+    <div class="diff"><div class="diff-hd">Differences</div><pre><span class="ctx"> shared line</span><span class="del">- removed</span><span class="add">+ added</span></pre></div>
   </div>
 <pre><code>&lt;div class="cols"&gt;
   &lt;div class="col a"&gt;&lt;div class="hd"&gt;Variant A&lt;/div&gt;&lt;pre&gt;...&lt;/pre&gt;&lt;/div&gt;
   &lt;div class="col b"&gt;&lt;div class="hd"&gt;Variant B&lt;/div&gt;&lt;pre&gt;...&lt;/pre&gt;&lt;/div&gt;
 &lt;/div&gt;
-&lt;div class="diff"&gt;&lt;div class="diff-hd"&gt;Differences&lt;/div&gt;&lt;pre&gt;&lt;span class="ctx"&gt; ctx&lt;/span&gt;
-&lt;span class="del"&gt;- removed&lt;/span&gt;
-&lt;span class="add"&gt;+ added&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</code></pre>
+&lt;div class="diff"&gt;&lt;div class="diff-hd"&gt;Differences&lt;/div&gt;&lt;pre&gt;&lt;span class="ctx"&gt; ctx&lt;/span&gt;&lt;span class="del"&gt;- removed&lt;/span&gt;&lt;span class="add"&gt;+ added&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</code></pre>
 </div>
 
 <h2>Inline helpers</h2>
@@ -321,7 +454,7 @@
   &lt;span class="seg s-amber" style="--v:180"&gt;&lt;/span&gt;
   &lt;span class="seg s-red"   style="--v:200"&gt;&lt;/span&gt;
 &lt;/div&gt;
-/* CSS: .seg{flex:var(--v)} - values are relative, need not sum to 100 */</code></pre>
+&lt;!-- --v values are relative and need not sum to 100 --&gt;</code></pre>
 </div>
 
 <div class="demo">
@@ -340,7 +473,7 @@
           stroke-dasharray="72 28" stroke-dashoffset="25" stroke-linecap="round"/&gt;
   &lt;text x="21" y="21" dy=".35em" text-anchor="middle" class="label"&gt;72%&lt;/text&gt;
 &lt;/svg&gt;
-/* dasharray="&lt;pct&gt; &lt;100-pct&gt;"; offset 25 starts the arc at 12 o'clock */</code></pre>
+&lt;!-- dasharray is "pct 100-pct"; offset 25 starts the arc at 12 o'clock --&gt;</code></pre>
 </div>
 
 <div class="demo">
@@ -352,7 +485,7 @@
     </svg>
   </div>
 <pre><code>&lt;svg class="spark" viewBox="0 0 9 15" preserveAspectRatio="none" role="img" aria-label="Trend"&gt;
-  &lt;polyline points="0,14 1,15 2,10 ..." fill="none" stroke="currentColor"
+  &lt;polyline points="0,14 1,15 2,10 3,11 4,7 5,5 6,0 7,5 8,10 9,11" fill="none" stroke="currentColor"
             stroke-width="2" vector-effect="non-scaling-stroke"/&gt;
 &lt;/svg&gt;</code></pre>
 </div>
@@ -376,11 +509,11 @@
   (function () {
     try {
       var tg = document.getElementById("theme-toggle");
-      if (tg) tg.addEventListener("click", function () {
+      if (tg) { tg.hidden = false; tg.addEventListener("click", function () {
         var n = document.documentElement.dataset.theme === "light" ? "dark" : "light";
         document.documentElement.dataset.theme = n;
         try { localStorage.setItem("theme", n); } catch (e) {}
-      });
+      }); }
     } catch (e) {}
   })();
 </script>
