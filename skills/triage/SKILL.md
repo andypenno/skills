@@ -54,4 +54,4 @@ Where safe and non-destructive, reproduce it. A cause you can trigger is a cause
 
 ## CI mode
 
-A red pipeline is the same procedure with different sources: which stage failed, whether it fails on a rerun (flake versus real), whether it fails on the base branch too (yours or pre-existing), and what changed in the window. Read the actual job log rather than the summary - and get the failing job's log specifically, not the whole pipeline's output.
+A red pipeline is the same procedure with different sources: which stage failed, whether earlier attempts of the same run failed the same way (flake versus real - propose a rerun rather than triggering one, per the rule above), whether it fails on the base branch too (yours or pre-existing), and what changed in the window. Read the actual job log rather than the summary - and get the failing job's log specifically, not the whole pipeline's output.

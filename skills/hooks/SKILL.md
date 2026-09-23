@@ -9,7 +9,7 @@ description: |-
 
 Automated verification that the harness or git runs for you. Getting one to *run* is easy; the failures below are what makes them painful, and every one has bitten a real repo.
 
-For the `settings.json` mechanics themselves - which keys, which scope, matcher syntax - use `/update-config`. This skill is about what to put in the hook and why.
+For the `settings.json` mechanics themselves - which keys, which scope, matcher syntax - use `/update-config` (a Claude Code built-in). This skill is about what to put in the hook and why.
 
 ## Pick the hook by what it can afford
 

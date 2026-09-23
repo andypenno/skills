@@ -32,7 +32,7 @@ glab auth status --all                    # is this host a configured GitLab ins
 🧨 **Self-hosted GitLab: MR pipelines run on `refs/merge-requests/<iid>/head`, not the branch.** `glab ci status -b <branch>` resolves the latest pipeline for that ref and can report `success` while the MR's actual head pipeline failed. Verified. Always go through the MR:
 
 ```bash
-glab api projects/:fullpath/merge_requests/<iid> --jq .head_pipeline.id
+glab api projects/:fullpath/merge_requests/<iid> | jq .head_pipeline.id   # glab api has no --jq
 glab ci get -p <that-id> -F json
 ```
 

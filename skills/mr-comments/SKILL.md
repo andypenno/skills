@@ -38,8 +38,8 @@ glab mr note list N --state unresolved -F json      # also --type diff|general|s
 Raw equivalent when you need the discussion ids:
 
 ```bash
-glab api "projects/:fullpath/merge_requests/N/discussions?per_page=100" --paginate \
-  --jq '.[] | select(.resolvable == true and .resolved == false)
+glab api "projects/:fullpath/merge_requests/N/discussions?per_page=100" --paginate --output ndjson \
+  | jq 'select(.resolvable == true and .resolved == false)
         | {id, path: .notes[0].position.new_path, line: .notes[0].position.new_line,
            author: .notes[0].author.username, body: .notes[0].body}'
 ```
@@ -65,7 +65,7 @@ Then, before editing: list each comment, your reading of what it asks, and what 
 
 ## Identify the agent in every comment
 
-A posted comment shows under the user's account, so readers know whose it is but not that an agent wrote it. Open every comment you draft - thread reply, new inline comment, non-blocking note, re-request - with a first line that ends in a consistent agent signature, ` ~ <agent> 🤖` (e.g. `~ Claude 🤖`). When the instruction files define an interaction style, that first line is its opener followed by the signature; with none defined, it is a short summary of the comment followed by the signature. A reader must be able to tell an agent wrote it, and which one. The line is part of the body, so it goes to the user for approval with the rest. The body below it is prose you are publishing - apply the writing conventions the instruction files set, straight quotes and no em or en dashes included, even to a draft already approved. Keep every comment concise: the issue and a suggested fix, no essays.
+A posted comment shows under the user's account, so readers know whose it is but not that an agent wrote it. Open every comment you draft - thread reply, new inline comment, non-blocking note, re-request - with a first line that ends in a consistent agent signature, ` ~ <agent> 🤖` (e.g. `~ Claude 🤖`). When the instruction files define an interaction style, that first line is its opener followed by the signature; with none defined, it is a short summary of the comment followed by the signature. A reader must be able to tell an agent wrote it, and which one. The line is part of the body, so it goes to the user for approval with the rest. The body below it is prose you are publishing - apply the writing conventions the instruction files set, straight quotes and no em or en dashes included, even to a draft already approved. Keep every comment concise: the issue and a suggested fix, no essays. A review finding goes out without its severity word (Critical, Warning, Suggestion) - state the issue and let the author judge how much it matters - and one the user wants posted as optional is phrased as optional ("consider ...").
 
 ## Posting a review as one batch
 
@@ -90,7 +90,7 @@ gh api -X PATCH repos/OWNER/REPO/pulls/comments/COMMENT_ID -F body=@body.txt   #
 gh api -X PUT   repos/OWNER/REPO/pulls/N/reviews/REVIEW_ID  -F body=@body.txt   # the review summary
 ```
 
-**GitLab** has no single review object; its batched form is draft notes - create each with `.../merge_requests/N/draft_notes` (same nested `position` as the discussion recipe below), then publish them together with `.../merge_requests/N/draft_notes/bulk_publish`. Per-discussion posting in the table below is the fallback when a draft batch is not worth it.
+**GitLab** has no single review object; its batched form is draft notes - create each with `.../merge_requests/N/draft_notes` (same nested `position` as the discussion recipe below, but the text key is `note`, not `body`), then publish them together with `.../merge_requests/N/draft_notes/bulk_publish`. Per-discussion posting in the table below is the fallback when a draft batch is not worth it.
 
 ## Replying and resolving
 

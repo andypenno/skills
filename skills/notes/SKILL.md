@@ -163,7 +163,7 @@ Initialize a git repo in the vault folder for history and backup:
 ```bash
 cd /path/to/vault
 git init
-echo '.obsidian/workspace.json\n.obsidian/workspace-mobile.json\n.obsidian/cache\n.trash/' > .gitignore
+printf '%s\n' .obsidian/workspace.json .obsidian/workspace-mobile.json .obsidian/cache .trash/ > .gitignore
 git add -A && git commit -m "Initial vault setup"
 ```
 

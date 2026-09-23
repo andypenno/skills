@@ -50,7 +50,7 @@ glab mr view N -F json --jq '{detailed_merge_status, draft, has_conflicts, block
 | GitHub | GitLab |
 |---|---|
 | `reviewDecision` ∈ `APPROVED` / `CHANGES_REQUESTED` / `REVIEW_REQUIRED` / `null` | `glab api "projects/:fullpath/merge_requests/N/approvals"` → `approvals_required`, `approvals_left`, `approved_by[].user.username` |
-| Who: `--jq '[.latestReviews[]\|select(.state=="APPROVED").author.login]'` | Per-rule detail: `glab mr approvers N -F json` |
+| Who: `gh pr view N --json latestReviews --jq '[.latestReviews[]\|select(.state=="APPROVED").author.login]'` | Per-rule detail: `glab mr approvers N -F json` |
 
 ⚠️ `reviewDecision: null` means the repo requires no reviews - **not** "not approved". On GitLab, `approvals_before_merge` on the MR object is deprecated and returns `null`; read `/approvals`. Approval *rules* are an EE/Premium feature - `rules[]` comes back empty on gitlab.com Free.
 
