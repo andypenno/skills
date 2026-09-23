@@ -74,7 +74,7 @@ while IFS= read -r line; do
 done < <(resolve_dirs "$PROJECT")
 if [ "${#DIRS[@]}" -eq 0 ] || [ -z "${DIRS[0]:-}" ]; then
   echo "No project sessions matched '$PROJECT'. Available:" >&2
-  find "$ROOT" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; >&2
+  resolve_dirs all | sed 's|.*/||' | sort -u >&2
   exit 1
 fi
 
