@@ -1,8 +1,8 @@
 ---
 name: measure
 description: |-
-  Trigger before running any benchmark, profile, leak hunt, load test or A/B comparison, and when the user asks whether a change actually improved anything or wants a comparison against a baseline. Also when a run already underway is slower than expected, has no estimate, or has no way to be stopped.
-  Keywords: benchmark, profile, profiling, measure, is this a leak, memory leak, performance comparison, compare against master, baseline, before and after, how long will this take, load test, is it faster
+  Trigger before running any benchmark, profile, leak hunt, load test or A/B comparison, and whenever the user wants a number for whether something helped (savings, cost, tokens, speed), including numbers pulled from logs or telemetry that already exist, or a comparison against a baseline. Also when a run already underway is slower than expected, has no estimate, or has no way to be stopped.
+  Keywords: benchmark, profile, profiling, measure, is this a leak, memory leak, performance comparison, compare against master, baseline, before and after, how long will this take, load test, is it faster, how much did it save, cost saving, hard numbers
 ---
 
 # Measure
@@ -47,7 +47,7 @@ Run the **smallest variant that could invalidate the hypothesis first**. If a fi
 - **Against the baseline, always.** An absolute number answers no question anyone asked. State the delta and whether it clears the noise.
 - **Noise first.** Two runs of the same config bound your resolution. A 3% delta on 10% variance is nothing, and saying so is the finding.
 - **Answer the original question in the first line.** "Did our change fix the key issues" is the question; the table is support.
-- Bulk numbers and comparisons go to a file or a rendered report, never streamed into chat. Pair with `/dataviz` for chart design and `/html` for a shareable document.
+- Bulk numbers and comparisons go to a file or a rendered report, never streamed into chat. Pair with `/dataviz` (a Claude Code built-in) for chart design and `/html` for a shareable document.
 
 ## Honesty
 

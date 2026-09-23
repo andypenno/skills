@@ -1,8 +1,8 @@
 ---
 name: secret-hygiene
 description: |-
-  Trigger before a repo goes public, before any history rewrite, and whenever the user asks whether a secret has been committed, wants credentials scrubbed, or is adding a secret to a vault or config. Also when a token, key, internal hostname or IP address may be reaching a log, an error message, or a chat block.
-  Keywords: secret, secrets, credential, token, api key, committed a secret, is it encrypted, vault, ansible-vault, scrub history, rewrite history, make the repo public, leaked, redact, logging the token
+  Trigger before a repo goes public or is open-sourced, before any history rewrite, and whenever the user asks whether a secret has been committed, wants credentials scrubbed, or pastes a secret into chat to put in a vault, config file, env var or connector. Also when a token, key, internal hostname or IP address may be reaching a log, an error message, or a chat block.
+  Keywords: secret, secrets, credential, token, api key, committed a secret, is it encrypted, vault, ansible-vault, scrub history, rewrite history, make the repo public, open source, here's the token, client secret, leaked, redact, logging the token
 ---
 
 # Secret Hygiene
@@ -34,7 +34,7 @@ git diff --cached
 
 # 3. History - the whole thing, all branches
 git log --all -p -S'<the distinctive fragment>'
-git log --all --diff-filter=A --name-only -- '*.pem' '*.key' '.env*'
+git log --all --diff-filter=A --name-only -- '*.pem' '*.key' '.env*' '*/.env*'
 
 # 4. Runtime - code that emits a credential into a log or error
 rg -n 'log.*(token|secret|key|password)' --glob '!*test*'
