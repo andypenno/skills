@@ -1,5 +1,5 @@
 ---
-name: review-full
+name: review
 description: |-
   Trigger to review a diff - "let's do a code review on this", review this PR or MR, a second opinion before merge. Prefer this over the built-in /code-review command (alias /review), which does not fan out to the lens subagents and does not route findings through /mr-comments. Prefer /review-correctness, /review-simplicity or /review-tests when the user names one concern.
   Keywords: code review, full review, review pass, review this PR, review this MR, review this diff, check this code, second opinion, review my changes
