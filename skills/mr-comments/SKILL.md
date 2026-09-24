@@ -63,6 +63,21 @@ Then, before editing: list each comment, your reading of what it asks, and what 
 - If you disagree with a comment, do not silently comply and do not silently ignore it. Say so, with the reason, and let the user decide.
 - A comment that reveals a class of problem: fix the instance asked for, and **report the siblings** rather than fixing them unasked. See `/review-correctness` for the sweep.
 
+## Before posting - signal, not noise
+
+Several people may already be reviewing, and a second thread on a point already raised splits the discussion and reads as not having read it. Before drafting anything - a finding, a reply, a note - read **every** existing comment: the Fetching commands above without their unresolved filter, so resolved and outdated threads count too. On GitHub also fetch what threads miss, `gh api repos/OWNER/REPO/issues/N/comments --paginate` and `gh api repos/OWNER/REPO/pulls/N/reviews --paginate` for review bodies. GitLab's `/discussions` already includes general comments.
+
+Match each draft against them by the issue it raises, not only its line - an outdated thread's line has moved, and a general comment has none. Then:
+
+| Existing discussion | Do |
+|---|---|
+| Open, same point | No new thread. Reply in it only with something it lacks - a failing case, a fix, evidence. Agreement alone is noise. |
+| Resolved, and the code now handles it | Drop the draft. |
+| Resolved or rejected, and the code still does it | Drop the draft and tell the user, with a link to the thread. Re-posting re-argues a settled decision. |
+| Same line, different issue | Post it. |
+
+Comments signed with your own signature (below) are an earlier round's; a re-review matches against them first. What you dropped and why goes to the user with the drafts, so the approval covers both.
+
 ## Identify the agent in every comment
 
 A posted comment shows under the user's account, so readers know whose it is but not that an agent wrote it. Open every comment you draft - thread reply, new inline comment, non-blocking note, re-request - with a first line that ends in a consistent agent signature, ` ~ <agent> 🤖` (e.g. `~ Claude 🤖`). When the instruction files define an interaction style, that first line is its opener followed by the signature; with none defined, it is a short summary of the comment followed by the signature. A reader must be able to tell an agent wrote it, and which one. The line is part of the body, so it goes to the user for approval with the rest. The body below it is prose you are publishing - apply the writing conventions the instruction files set, straight quotes and no em or en dashes included, even to a draft already approved. Keep every comment concise: the issue and a suggested fix, no essays. A review finding goes out without its severity word (Critical, Warning, Suggestion) - state the issue and let the author judge how much it matters - and one the user wants posted as optional is phrased as optional ("consider ...").
