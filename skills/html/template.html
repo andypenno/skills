@@ -7,13 +7,18 @@
 <!-- Look: accent blue · h-plain · t-plain · f-sans · lead <component>   (SKILL.md §1) -->
 
 <!-- Theme init: blocking, runs before paint to prevent flash-of-wrong-theme (FOUC).
-     Default landing state is dark; only a persisted "light" choice overrides. file:// safe (try/catch). -->
+     Default landing state is dark; only a persisted "light" choice overrides. file:// safe (try/catch).
+     Also restores a collapsed sidebar, and starts it collapsed on narrow screens. -->
 <script>
   (function () {
     try {
       var t = localStorage.getItem("theme");
       if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      if (localStorage.getItem("toc") === "collapsed") document.documentElement.classList.add("toc-collapsed");
     } catch (e) { /* localStorage blocked on file:// in some browsers - keep default */ }
+    try {
+      if (matchMedia("(max-width: 900px)").matches) document.documentElement.classList.add("toc-collapsed");
+    } catch (e) {}
   })();
 </script>
 
@@ -30,7 +35,7 @@
     --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --serif: ui-serif, "New York", "Iowan Old Style", Georgia, Cambria, "Times New Roman", serif;
-    --wrap-max: 960px;   /* bump to 1080px for diff/column/grid-heavy docs - the TOC offset tracks it */
+    --wrap-max: 960px;   /* bump to 1080px for diff/column/grid-heavy docs */
   }
   [data-theme="light"] {
     color-scheme: light;
@@ -56,7 +61,6 @@
   body { margin: 0; background: var(--bg); color: var(--text);
     font-family: var(--sans); line-height: 1.6; }
   .wrap { max-width: var(--wrap-max); margin: 0 auto; padding: 40px 24px 80px; }
-  /* widen via the --wrap-max token above (e.g. 1080px) - the fixed TOC offset follows automatically */
 
   /* ---- Headings ---- */
   h1 { font-size: 1.9rem; border-bottom: 2px solid var(--border); padding-bottom: .4em; margin: 0 0 .2em; }
@@ -76,7 +80,7 @@
     padding: .35em .7em; margin-top: 2em; }
 
   /* ---- Title treatments, also on .wrap: t-plain = the ruled h1 above (default) · t-hero = below ---- */
-  /* the tint stops at 50% so the meta line and legend below the h1 keep AA contrast */
+  /* the tint stops at 50% so the subtitle, facts and legend below the h1 keep AA contrast */
   .t-hero .top { background: linear-gradient(180deg, rgba(var(--accent-rgb),.14), rgba(var(--accent-rgb),0) 50%), var(--panel);
     border: 1px solid var(--border); border-top: 4px solid var(--accent); border-radius: 14px;
     padding: 28px 28px 16px; margin-bottom: 1.6em; }
@@ -133,6 +137,15 @@
   .ok { color: var(--green); } .no { color: var(--red); }
   .legend { color: var(--muted); }
   .legend > span { margin-right: 1.5em; font-size: .85rem; white-space: nowrap; }
+
+  /* ---- Title block: subtitle, facts row, stacked legend ---- */
+  .subtitle { color: var(--muted); font-size: 1rem; margin: .2em 0 .9em; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0 0 1.1em; }
+  .facts dt { font: 600 .68rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .facts dd { margin: 0; font-size: .9rem; }
+  .legend.stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px 16px; }
+  .legend.stack > span { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; margin-right: 0; white-space: normal; }
+  .legend.stack .tag { margin-left: 0; }
   .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px;
     margin-right: 5px; vertical-align: middle; }
 
@@ -218,29 +231,36 @@
   .add { background: rgba(var(--green-rgb),.12); color: color-mix(in srgb, var(--green) 70%, var(--text)); display: block; }
   .ctx { color: var(--muted); display: block; }
 
-  /* ---- Theme toggle button ---- */
-  .theme-toggle { position: fixed; top: 16px; right: 16px; z-index: 10;
-    font: 600 12px/1 var(--mono); color: var(--muted); background: var(--panel);
-    border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
-  .theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+  /* ---- Sidebar toolbar: collapse + theme toggle ---- */
+  .toc-bar { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 14px; }
+  .toc-btn { width: 30px; height: 30px; font: 600 14px/1 var(--sans); color: var(--muted);
+    background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; }
+  .toc-btn:hover, .toc-btn:focus-visible { color: var(--text); border-color: var(--accent); }
 
-  /* ---- Scroll-spy TOC: fixed in the left gutter on wide screens, inline box on narrow ---- */
-  #toc { position: fixed; top: 24px; left: calc(50% - var(--wrap-max)/2 - 204px); width: 180px;
-    max-height: calc(100vh - 48px); overflow-y: auto; font-size: .82rem; }
+  /* ---- Scroll-spy TOC: a fixed left sidebar, collapsible to a strip; a drawer on narrow screens ---- */
+  #toc { position: fixed; top: 0; left: 0; bottom: 0; width: 250px; overflow-y: auto;
+    padding: 24px 12px 24px 16px; background: var(--panel); border-right: 1px solid var(--border);
+    font-size: .82rem; z-index: 5; }
+  body:has(#toc a) { padding-left: 250px; }
   #toc .toc-label { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em;
     text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
   #toc a { display: block; color: var(--muted); text-decoration: none; padding: 3px 10px;
-    border-left: 2px solid var(--border); }
+    border-left: 2px solid var(--border); line-height: 1.35; }
   #toc a:hover { color: var(--text); }
   #toc a.lvl-h3 { padding-left: 22px; font-size: .92em; }
-  #toc a.active { color: var(--accent); border-left-color: var(--accent); }
-  #toc:not(:has(a)) { display: none; }   /* JS off: no links were built */
-  /* media queries can't read --wrap-max; 1500px keeps the gutter TOC on-screen for wraps up to 1080px */
-  @media (max-width: 1500px) {
-    #toc { position: static; width: auto; max-height: none; margin: 0 0 1.5em;
-      border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; background: var(--panel); }
-    #toc a { border-left: none; padding: 2px 0; }
-    #toc a.active { border-left: none; }
+  #toc a.active { color: var(--accent); border-left-color: var(--accent); background: rgba(var(--accent-rgb),.08); }
+  #toc:not(:has(a)) { display: none; }   /* JS off: no links were built, and the toolbar buttons do nothing */
+  /* animate only a user toggle; on load the links arrive after paint and the page would slide */
+  .toc-anim #toc, .toc-anim body { transition: width .2s ease, padding .2s ease; }
+  .toc-collapsed #toc { width: 52px; padding: 16px 10px; overflow: hidden; }
+  .toc-collapsed #toc a, .toc-collapsed #toc .toc-label { display: none; }
+  .toc-collapsed .toc-bar { flex-direction: column; }
+  .toc-collapsed body:has(#toc a) { padding-left: 52px; }
+  /* narrow screens: the sidebar is a drawer over the content, starting collapsed to a strip */
+  @media (max-width: 900px) {
+    body:has(#toc a) { padding-left: 52px; }
+    #toc { width: min(280px, 85vw); box-shadow: 4px 0 24px rgba(0,0,0,.35); }
+    .toc-collapsed #toc { box-shadow: none; }
   }
 
   /* ---- charts (opt-in) ---- */
@@ -266,8 +286,6 @@
     .arrow { transform: rotate(90deg); }
     table { display: block; overflow-x: auto; }  /* wide matrices scroll in place instead of stretching the page */
     .wrap { padding: 24px 16px 60px; }
-    .top h1 { padding-right: 84px; }   /* clear the theme toggle */
-    .theme-toggle { position: absolute; }   /* stays in the title corner instead of riding over the text */
   }
 
   /* ---- Respect reduced motion ---- */
@@ -283,7 +301,8 @@
       --muted: #444; --code-bg: #f4f4f4; --chip: #eee;
       --accent: #0969da; --green: #1a7f37; --amber: #9a6700; --red: #cf222e;
       --accent-rgb: 9,105,218; --green-rgb: 26,127,55; --amber-rgb: 154,103,0; --red-rgb: 207,34,46; }
-    .theme-toggle, #toc, .copy-btn { display: none !important; }
+    #toc, .copy-btn { display: none !important; }
+    body:has(#toc a) { padding-left: 0; }
     details { border: 1px solid #999; }
     details > summary::before { display: none; }
     details::details-content { height: auto !important; content-visibility: visible !important; }  /* expand even with JS off */
@@ -293,23 +312,33 @@
 </style>
 </head>
 <body>
-<button class="theme-toggle" id="theme-toggle" aria-label="Toggle light/dark theme" hidden>◑ theme</button>
 
 <div class="wrap h-plain t-plain f-sans">   <!-- heading, title and type treatments; see their CSS blocks -->
 
   <header class="top">
     <h1>TEMPLATE SUBJECT</h1>
-    <p class="meta">Project · Area · Driven by <a href="#">ticket / PR / driver</a></p>
-    <p class="legend">
+    <p class="subtitle">One sentence on what this document is and who it is for.</p>
+    <dl class="facts">
+      <div><dt>Project</dt><dd><a href="#">Project name</a></dd></div>
+      <div><dt>Ticket</dt><dd><a href="#">ABC-123</a></dd></div>
+      <div><dt>Updated</dt><dd>YYYY-MM-DD</dd></div>
+    </dl>
+    <p class="legend stack">
       <span><span class="tag now">NOW</span> ships independently</span>
       <span><span class="tag gated">GATED</span> blocked on a dependency</span>
       <span><span class="tag risk">RISK</span> needs a decision</span>
     </p>
   </header>
 
-  <!-- TOC sits after the title block so the doc leads with <h1>; on wide screens it lifts into the fixed gutter.
-       Delete this nav below about four h2s - the builder no-ops without it and a short doc reads better bare. -->
-  <nav id="toc" aria-label="On this page"><div class="toc-label">On this page</div></nav>
+  <!-- The sidebar holds the contents and the theme toggle, so it stays in every doc. For a short one
+       (below about four h2s) add class="toc-collapsed" to <html> so it opens as a strip. -->
+  <nav id="toc" aria-label="On this page">
+    <div class="toc-bar">
+      <button class="toc-btn" id="toc-collapse" type="button" aria-label="Collapse contents" aria-expanded="true" title="Collapse contents">«</button>
+      <button class="toc-btn" id="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle light/dark theme" hidden>◑</button>
+    </div>
+    <div class="toc-label">On this page</div>
+  </nav>
 
   <!-- The plan spine below is a worked example, not a required shape. Pick this document's sections
        from SKILL.md §3's job table and delete every section here that does not apply. -->
@@ -414,7 +443,12 @@ function example() { return true; }</code></pre>
       var visible = new Set();
       function setActive(h) {
         [].forEach.call(toc.querySelectorAll("a.active"), function (a) { a.classList.remove("active"); });
-        if (h && links[h.id]) links[h.id].classList.add("active");
+        if (h && links[h.id]) {
+          var a = links[h.id]; a.classList.add("active");
+          /* keep the active entry visible inside the sidebar without scrolling the page */
+          if (a.offsetTop < toc.scrollTop || a.offsetTop > toc.scrollTop + toc.clientHeight - 40)
+            toc.scrollTop = a.offsetTop - toc.clientHeight / 2;
+        }
       }
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
@@ -468,6 +502,31 @@ function example() { return true; }</code></pre>
       pre.appendChild(btn);
     });
   } catch (e) { /* code blocks still selectable */ }
+
+  /* ---- Sidebar collapse (persists if storage allows) ---- */
+  try {
+    var cb = document.getElementById("toc-collapse"), root = document.documentElement;
+    function narrow() { return matchMedia("(max-width: 900px)").matches; }
+    function syncCollapse() {
+      var c = root.classList.contains("toc-collapsed");
+      cb.textContent = c ? "»" : "«";
+      cb.setAttribute("aria-expanded", c ? "false" : "true");
+      cb.setAttribute("aria-label", c ? "Expand contents" : "Collapse contents");
+      cb.title = cb.getAttribute("aria-label");
+    }
+    if (cb) {
+      syncCollapse();
+      cb.addEventListener("click", function () {
+        root.classList.add("toc-anim");
+        root.classList.toggle("toc-collapsed");
+        syncCollapse();
+        if (!narrow()) try { localStorage.setItem("toc", root.classList.contains("toc-collapsed") ? "collapsed" : "open"); } catch (e) {}
+      });
+      document.getElementById("toc").addEventListener("click", function (e) {
+        if (narrow() && e.target.closest("a")) { root.classList.add("toc-collapsed"); syncCollapse(); }
+      });
+    }
+  } catch (e) {}
 
   /* ---- Theme toggle (persists if storage allows; works for the session regardless) ---- */
   try {

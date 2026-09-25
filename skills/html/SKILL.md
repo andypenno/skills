@@ -39,13 +39,13 @@ rg -n 'src="http|rel="stylesheet"|@import|type="module"|@font-face|url\(http|cdn
 
 ## 1. Build from the template
 
-Start from **`template.html`** (in this skill dir) - copy it, don't hand-roll from scratch. It already carries the design system, the full component CSS, the mobile/print/reduced-motion blocks, and the baked-in JS (TOC scroll-spy, copy buttons, theme toggle, `<details>`). Then:
+Start from **`template.html`** (in this skill dir) - copy it, don't hand-roll from scratch. It already carries the design system, the full component CSS, the mobile/print/reduced-motion blocks, and the baked-in JS (the contents sidebar with its collapse and theme buttons, copy buttons, `<details>`). Then:
 
 1. **Choose the look before writing any content.** Five slots, one value each: the accent (`data-accent`, §2), the heading treatment (`h-plain`, `h-num`, `h-band`), the title (`t-plain`, `t-hero`), the type (`f-sans`, `f-serif`), and the one non-prose display that carries this doc (`.kpis`, a table, `.flow`, `.grid2`, `.tree`, `.cols`, or one chart). First read the `Look:` comment of the last doc you wrote this session, or else the newest in the plans dir (`fd -e html . ~/.claude/plans -X ls -t | head -1`; no file or no comment means blue, `h-plain`, `t-plain`, `f-sans`) and change at least two slots from it. Record the result in the `Look:` comment under `<title>` so an in-place update (§6.3) keeps it.
-2. Set `<title>` and the `<h1>` + `.meta` provenance line.
+2. Fill the title block in `<header class="top">`: `<title>` and `<h1>`, a one-sentence `.subtitle`, a `.facts` row of labelled provenance (project, ticket, scope, updated), and a `.legend.stack` declaring the tag vocabulary once.
 3. Pick the sections from §3's job table, and delete every template section that does not apply to this document before writing content into it.
 4. Drop in the content using components from the menu (§4). Delete unused component CSS only if trimming for size - leaving it is harmless.
-5. Keep the top 1-2 sections expanded; wrap long/secondary blocks (exhaustive tables, full dumps, appendices, Risks) in `<details>`. Delete the `#toc` nav for a short doc (see its comment in the template).
+5. Keep the top 1-2 sections expanded; wrap long/secondary blocks (exhaustive tables, full dumps, appendices, Risks) in `<details>`. Never delete the `#toc` nav, since the theme toggle lives in it. For a short doc (below about four `h2`s) add `class="toc-collapsed"` to `<html>` so the sidebar opens as a strip.
 6. Run the checklist, save (§6), surface the file (§6).
 
 **`components.html`** is an openable gallery of every component rendered next to its markup - read it when you need the exact snippet, or send it to the user as a style reference.
@@ -88,8 +88,9 @@ The plan row in full, as the worked example:
 
 ```
 <h1>Subject</h1>
-<p class="meta">Project · Area · Driver/ticket/PR</p>   ← provenance
-<p class="legend">…tag vocabulary declared once…</p>
+<p class="subtitle">…</p>     one sentence: what this is, for whom
+<dl class="facts">…</dl>     provenance: Project · Ticket · Updated
+<p class="legend stack">…</p>   tag vocabulary declared once
 <h2>Context</h2>            one-paragraph framing + a summary callout
 <h2>Scope</h2>              IN/OUT callout: ✅ in-scope, ❌ out-of-scope
 <h2>Implementation</h2>     file-by-file: <p class="file">path</p> above each <pre>
@@ -110,7 +111,8 @@ All defined in `template.html`; `components.html` mirrors those exact rules to r
 |---|---|
 | `.callout` (`.warn`/`.risk`/`.ok`, opt. `.h`) | the few must-not-miss notes |
 | `.tag` (`.now`/`.gated`/`.bug`/`.scope`…) | inline status pills |
-| `.legend` + `.sw` | declare the tag/colour vocabulary once |
+| `.legend` + `.sw` | declare the tag/colour vocabulary once, inline |
+| `.subtitle` / `.facts` / `.legend.stack` | the title block: one-line purpose, labelled provenance, tag vocabulary as a grid |
 | `<table>` | any item × attribute matrix (never narrate it) |
 | `<pre>`/`code` + `.file` | code (load-bearing only) + green-mono file paths |
 | `<details>`/`<summary>` | collapse secondary detail (zero JS) |
@@ -128,9 +130,9 @@ All defined in `template.html`; `components.html` mirrors those exact rules to r
 
 **Baked into `template.html`** - all vanilla, inline, `file://`-safe, degrading silently:
 - **`<details>` collapsibles** - zero JS, the highest-value readability win.
-- **Scroll-spy TOC** - auto-built from `h2`/`h3` (IDs auto-slugged), highlights the active section; sits in the left gutter on wide screens, becomes an inline box on narrow. Has the scroll-up fallback.
+- **Contents sidebar** - a full-height panel fixed to the left edge, auto-built from `h2`/`h3` (IDs auto-slugged). Scroll-spy highlights the active section and keeps it in view inside the sidebar. `«`/`»` collapses it to a strip and the choice persists; under 900px it is a drawer over the content that starts collapsed and closes after a link is followed. Has the scroll-up fallback.
 - **Copy-to-clipboard** on every `<pre>` - modern `navigator.clipboard` (works on `file://` - it's a secure context) with `execCommand` fallback.
-- **Theme toggle** - `data-theme` swap, persisted to `localStorage` (try/catch - Firefox blocks it on `file://`; the toggle still works for the session). FOUC prevented by the blocking `<head>` init script.
+- **Theme toggle** - the `◑` button in the sidebar toolbar, next to the collapse button; `data-theme` swap, persisted to `localStorage` (try/catch - Firefox blocks it on `file://`; the toggle still works for the session). FOUC prevented by the blocking `<head>` init script.
 - **Print-expand** - a `beforeprint` hook force-opens every `<details>` (collapsed ones don't render on print/PDF otherwise) and restores state after. So "print to PDF / share" never silently drops collapsed content.
 
 **Opt-in (CSS already in `template.html`, markup in `components.html`, add when the data merits it):** stacked bar (CSS flex), donut/progress ring (SVG, `r=15.915`), sparkline (SVG polyline), progress bar. Theme them with `currentColor` + vars, give each an `aria-label`, gate motion behind `prefers-reduced-motion`.
@@ -158,3 +160,4 @@ Rule: graphics serve *parseability*, not flash. Never hide must-read content beh
 | *"Give me the download link… view it on my phone"* / *"so I can open in the browser directly"* | **Always print the `file://` link** after **every** generation (+ send the file if the harness has a file-sending tool). |
 | *"Remove the code blocks in favour of file references"* | Reserve `<pre>` for load-bearing code; when a span just points at a known definition, use an inline `.file` reference. |
 | Columns overflow on phone | The 720px reflow ships whenever side-by-side columns are used. |
+| *"I also dont like how the contents page appears by default"* | Contents live in the collapsible sidebar at the page edge, never as a box in the content column. |
